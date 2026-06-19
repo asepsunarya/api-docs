@@ -1,0 +1,88 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Example API",
+    "version": "1.0.0",
+    "description": "Contoh schema OpenAPI untuk starter Fumadocs + Scalar."
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "List users",
+        "description": "Mengambil daftar user contoh.",
+        "operationId": "listUsers",
+        "tags": ["Users"],
+        "responses": {
+          "200": {
+            "description": "Daftar user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create user",
+        "description": "Membuat user baru.",
+        "operationId": "createUser",
+        "tags": ["Users"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User dibuat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "required": ["id", "name", "email"],
+        "properties": {
+          "id": { "type": "string", "example": "usr_123" },
+          "name": { "type": "string", "example": "Asheep" },
+          "email": { "type": "string", "format": "email", "example": "asheep@example.com" }
+        }
+      },
+      "CreateUserInput": {
+        "type": "object",
+        "required": ["name", "email"],
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" }
+        }
+      }
+    }
+  }
+}
