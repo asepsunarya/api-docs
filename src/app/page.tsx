@@ -4,32 +4,32 @@ const apiShortcuts = [
   {
     title: 'Partner API',
     description: 'Informasi partner, OAuth, Zapier, dan konfigurasi callback.',
-    href: '/docs/openapi/partner-api',
+    href: '/docs/openapi/partner-api/PartnerController_getPartner',
   },
   {
     title: 'Channel API',
     description: 'Kelola channel yang terhubung ke Socialchat.',
-    href: '/docs/openapi/channel-api',
+    href: '/docs/openapi/channel-api/ChannelController_getChannel',
   },
   {
     title: 'Conversation API',
     description: 'Akses daftar percakapan, detail percakapan, dan assignment.',
-    href: '/docs/openapi/conversation-controller',
+    href: '/docs/openapi/conversation-controller/ConversationController_getConversation',
   },
   {
     title: 'Message API',
     description: 'Kirim pesan dan gunakan template WhatsApp.',
-    href: '/docs/openapi/message-api',
+    href: '/docs/openapi/message-api/MessageController_searchMessage',
   },
   {
     title: 'Webhook API',
     description: 'Atur webhook untuk menerima event dari Socialchat.',
-    href: '/docs/openapi/webhook-api',
+    href: '/docs/openapi/partner-api/PartnerController_updatePartner',
   },
   {
     title: 'WhatsApp Official',
     description: 'Koneksi akun, template message, dan upload media.',
-    href: '/docs/openapi/channel-whatsapp-official-api',
+    href: '/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_createAccount',
   },
 ];
 

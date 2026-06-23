@@ -3,17 +3,17 @@ title: Overview
 description: Halaman utama referensi Socialchat Partner API.
 ---
 
-Gunakan halaman ini sebagai pintasan utama untuk membuka kelompok endpoint Socialchat Partner API.
+Gunakan halaman ini sebagai pintasan utama untuk membuka endpoint Socialchat Partner API yang valid.
 
 ## Pilih kategori API
 
-- [Partner API](./openapi/partner-api) — informasi partner, OAuth, Zapier, dan konfigurasi callback.
-- [Channel API](./openapi/channel-api) — daftar channel, detail channel, dan konfigurasi channel.
-- [Conversation API](./openapi/conversation-controller) — daftar percakapan, detail percakapan, dan assignment.
-- [Message API](./openapi/message-api) — pengiriman pesan dan template WhatsApp.
-- [Webhook API](./openapi/webhook-api) — konfigurasi webhook untuk menerima event dari Socialchat.
-- [Channel WhatsApp Official API](./openapi/channel-whatsapp-official-api) — koneksi WhatsApp Official, template message, dan media.
-- [Channel WhatsApp Unofficial API](./openapi/channel-whatsapp-unofficial-api) — koneksi dan disconnect WhatsApp Unofficial.
+- [Partner API](/docs/openapi/partner-api/PartnerController_getPartner) — informasi partner, OAuth, Zapier, dan konfigurasi callback.
+- [Channel API](/docs/openapi/channel-api/ChannelController_getChannel) — daftar channel, detail channel, dan konfigurasi channel.
+- [Conversation API](/docs/openapi/conversation-controller/ConversationController_getConversation) — daftar percakapan, detail percakapan, dan assignment.
+- [Message API](/docs/openapi/message-api/MessageController_searchMessage) — pencarian dan pengelolaan pesan.
+- [Webhook / Callback](/docs/openapi/partner-api/PartnerController_updatePartner) — konfigurasi webhook dan callback URL partner.
+- [Channel WhatsApp Official API](/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_createAccount) — koneksi WhatsApp Official, template message, dan media.
+- [Channel WhatsApp Unofficial API](/docs/openapi/channel-whatsapp-unofficial-api/WhatsAppUnofficialController_createAccount) — koneksi WhatsApp Unofficial.
 
 ## Sebelum mencoba endpoint
 
@@ -24,4 +24,4 @@ Authorization: Bearer YOUR_API_KEY
 Content-Type: application/json
 ```
 
-Jika belum memiliki API key, baca halaman [Authentication](./authentication) terlebih dahulu.
+Jika belum memiliki API key, baca halaman [Authentication](/docs/authentication) terlebih dahulu.
