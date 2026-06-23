@@ -4,10 +4,9 @@ const socialchatLogoUrl = 'https://socialchat.id/socialchat-logo.svg';
 
 function SocialchatTitle() {
   return (
-    <span className="inline-flex items-center gap-2 font-semibold">
+    <span className="inline-flex items-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={socialchatLogoUrl} alt="Socialchat" className="h-6 w-auto" />
-      <span>Socialchat</span>
+      <img src={socialchatLogoUrl} alt="Socialchat" className="h-8 w-auto" />
     </span>
   );
 }
