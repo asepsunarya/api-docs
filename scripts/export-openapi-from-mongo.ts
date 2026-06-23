@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { adminCollections } from '../src/lib/admin/collections';
 import { siteKey } from '../src/lib/admin/data';
 import { validateOpenApiDocument } from '../src/lib/admin/validation';
+import { normalizeOpenApiDocument } from '../src/lib/openapi-normalize';
 
 async function main() {
   const collections = await adminCollections();
@@ -11,7 +12,7 @@ async function main() {
   if (!source) throw new Error('No active OpenAPI source found in MongoDB');
   if (!source.schemaJson) throw new Error(`Active source "${source.name}" has no synced schemaJson yet`);
 
-  const schema = validateOpenApiDocument(source.schemaJson);
+  const schema = normalizeOpenApiDocument(validateOpenApiDocument(source.schemaJson));
   const output = resolve(process.cwd(), 'openapi.json');
   await writeFile(output, `${JSON.stringify(schema, null, 2)}\n`, 'utf8');
 
