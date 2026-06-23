@@ -1,0 +1,27 @@
+---
+title: OpenAPI Reference
+description: Halaman utama referensi Socialchat Partner API.
+---
+
+Gunakan halaman ini sebagai pintasan utama untuk membuka kelompok endpoint Socialchat Partner API.
+
+## Pilih kategori API
+
+- [Partner API](./openapi/partner-api) — informasi partner, OAuth, Zapier, dan konfigurasi callback.
+- [Channel API](./openapi/channel-api) — daftar channel, detail channel, dan konfigurasi channel.
+- [Conversation API](./openapi/conversation-controller) — daftar percakapan, detail percakapan, dan assignment.
+- [Message API](./openapi/message-api) — pengiriman pesan dan template WhatsApp.
+- [Webhook API](./openapi/webhook-api) — konfigurasi webhook untuk menerima event dari Socialchat.
+- [Channel WhatsApp Official API](./openapi/channel-whatsapp-official-api) — koneksi WhatsApp Official, template message, dan media.
+- [Channel WhatsApp Unofficial API](./openapi/channel-whatsapp-unofficial-api) — koneksi dan disconnect WhatsApp Unofficial.
+
+## Sebelum mencoba endpoint
+
+Pastikan setiap request menyertakan header autentikasi berikut:
+
+```http
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+Jika belum memiliki API key, baca halaman [Authentication](./api-reference-guide/authentication) terlebih dahulu.
