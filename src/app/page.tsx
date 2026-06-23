@@ -71,7 +71,7 @@ export default function Home() {
                 Pilih kategori endpoint yang paling sering dipakai.
               </p>
             </div>
-            <Link href="/docs/api-reference-guide/authentication" className="text-sm font-medium text-fd-primary">
+            <Link href="/docs/authentication" className="text-sm font-medium text-fd-primary">
               Authentication →
             </Link>
           </div>
