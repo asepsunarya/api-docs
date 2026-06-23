@@ -1,5 +1,6 @@
 import { adminCollections } from './collections';
 import { objectId, siteKey } from './data';
+import { normalizeOpenApiDocument } from '../openapi-normalize';
 import { validateOpenApiDocument } from './validation';
 
 export async function fetchOpenApiSchema(url: string) {
@@ -11,7 +12,7 @@ export async function fetchOpenApiSchema(url: string) {
   if (!response.ok) throw new Error(`OpenAPI fetch failed: ${response.status} ${response.statusText}`);
 
   const json = await response.json();
-  return validateOpenApiDocument(json);
+  return normalizeOpenApiDocument(validateOpenApiDocument(json));
 }
 
 export async function syncOpenApiSource(id: string) {
