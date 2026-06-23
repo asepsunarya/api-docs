@@ -17,9 +17,9 @@ export async function getSettings() {
 
   const fallback: ApiDocsSettings = {
     siteKey,
-    title: 'API Docs',
-    description: 'Customizable API documentation',
-    logoUrl: '',
+    title: 'Socialchat Partner API',
+    description: 'Dokumentasi API untuk integrasi Socialchat.',
+    logoUrl: 'https://socialchat.id/socialchat-logo.svg',
     primaryColor: '#0f172a',
     updatedAt: new Date(),
   };
