@@ -1,0 +1,9 @@
+{
+  "title": "Socialchat Partner API",
+  "pages": [
+    "index",
+    "getting-started",
+    "api-reference-guide",
+    "openapi"
+  ]
+}

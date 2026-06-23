@@ -1,0 +1,72 @@
+---
+title: Authentication
+description: Cara melakukan autentikasi request ke Socialchat Partner API menggunakan Bearer Token.
+---
+
+# Authentication
+
+Autentikasi adalah langkah penting saat berinteraksi dengan API. Socialchat Partner API menggunakan **HTTP Bearer Authentication**, yaitu mekanisme autentikasi dengan mengirimkan API key melalui header `Authorization` pada setiap request.
+
+Dengan autentikasi ini, Socialchat dapat memverifikasi identitas aplikasi kamu dan memastikan hanya request yang memiliki izin yang dapat mengakses resource API.
+
+## Header yang wajib dikirim
+
+Setiap request ke Socialchat Partner API harus menyertakan header berikut:
+
+```http
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+Ganti `YOUR_API_KEY` dengan API key milik akun Socialchat kamu.
+
+## Cara mendapatkan API key
+
+Untuk mengambil API key dari Socialchat, ikuti langkah berikut:
+
+1. **Login ke Socialchat**  
+   Masuk ke akun Socialchat menggunakan kredensial yang valid.
+
+2. **Buka User Settings**  
+   Setelah login, buka menu pengaturan pengguna.
+
+3. **Masuk ke bagian API / Tools & Integrations**  
+   Cari tab atau menu yang berhubungan dengan API, tools, atau integrasi.
+
+4. **Generate API Key**  
+   Klik tombol **Generate** untuk membuat API key baru jika belum tersedia.
+
+5. **Simpan API Key dengan aman**  
+   Simpan API key di tempat aman, misalnya environment variable pada backend service.
+
+## Contoh request
+
+Berikut contoh request menggunakan `curl` untuk memperbarui konfigurasi partner:
+
+```bash
+curl -s -X PUT "https://api.socialchat.id/partner/" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "webhookUrl": "https://your-webhook-url.com/execute",
+    "callbackMessengerUrl": "https://your-callback-messenger-url.com/callback",
+    "callbackInstagramUrl": "https://your-callback-instagram-url.com/callback"
+  }'
+```
+
+## Keamanan API key
+
+API key memberikan akses penting ke resource Socialchat. Karena itu, pastikan API key tidak dibagikan secara sembarangan.
+
+Hindari menyimpan API key di:
+
+- Repository publik seperti GitHub.
+- Kode frontend atau aplikasi client-side.
+- Log yang dapat diakses publik.
+- Dokumentasi internal yang tidak memiliki akses terbatas.
+
+Sebaiknya simpan API key di environment variable, secret manager, atau konfigurasi backend yang aman.
+
+## Request tanpa autentikasi
+
+Request yang tidak menyertakan header `Authorization` atau menggunakan API key yang tidak valid akan ditolak oleh API. Umumnya response yang dikembalikan adalah status `401 Unauthorized` atau `403 Forbidden`, tergantung kondisi request dan izin akses akun.
