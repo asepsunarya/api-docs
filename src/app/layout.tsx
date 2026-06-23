@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Fumadocs + Scalar',
-  description: 'Starter dokumentasi API dengan Fumadocs dan Scalar/OpenAPI.',
+  title: 'Socialchat Partner API',
+  description: 'Dokumentasi API untuk integrasi Socialchat.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
