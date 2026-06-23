@@ -1,0 +1,64 @@
+---
+title: Introduction
+description: Pengenalan Socialchat Partner API dan cara mulai menggunakannya.
+---
+
+# Introduction
+
+**Socialchat** adalah platform **CRM omnichannel** yang memungkinkan bisnis mengelola komunikasi pelanggan dari berbagai kanal, seperti **WhatsApp, Instagram, Facebook Messenger, Telegram, dan Live Chat website**, semuanya dalam satu dashboard terintegrasi.
+
+Dokumentasi ini dibuat untuk membantu partner dan developer memahami cara menggunakan **Socialchat Partner API**. API ini dapat digunakan untuk menghubungkan Socialchat dengan aplikasi internal, sistem CRM, automation workflow, atau layanan pihak ketiga lainnya.
+
+## Untuk siapa dokumentasi ini?
+
+Dokumentasi ini cocok untuk:
+
+- Developer yang ingin melakukan integrasi dengan Socialchat.
+- Partner yang membutuhkan akses API untuk mengelola data dan channel.
+- Tim teknis yang ingin mengotomatisasi proses komunikasi pelanggan.
+- Sistem backend yang perlu membaca, mengirim, atau menerima data dari Socialchat.
+
+## Base URL
+
+Gunakan Base URL berikut untuk mengakses Socialchat Partner API:
+
+```txt
+https://api.socialchat.id/partner/
+```
+
+Gabungkan Base URL dengan path endpoint yang tersedia di dokumentasi API. Contohnya:
+
+```txt
+https://api.socialchat.id/partner/channel
+```
+
+## Autentikasi
+
+Setiap request ke Socialchat Partner API harus menyertakan API key menggunakan HTTP Bearer Authentication.
+
+```http
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+Jangan membagikan API key di tempat publik seperti GitHub, aplikasi frontend, log publik, atau dokumentasi yang bisa diakses umum.
+
+## Mulai menggunakan API
+
+Langkah awal yang disarankan:
+
+1. Login ke akun Socialchat.
+2. Ambil atau generate API key dari pengaturan akun.
+3. Simpan API key dengan aman di environment variable backend.
+4. Kirim request pertama ke endpoint yang dibutuhkan.
+5. Gunakan halaman referensi API untuk melihat parameter, body request, dan response setiap endpoint.
+
+## Contoh request sederhana
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/channel" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+Jika API key valid dan akun memiliki akses yang sesuai, Socialchat akan mengembalikan response sesuai endpoint yang dipanggil.

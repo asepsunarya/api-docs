@@ -1,18 +1,44 @@
 ---
-title: Fumadocs + Scalar
-description: Starter dokumentasi API dengan Fumadocs UI dan OpenAPI/Scalar playground.
+title: Getting Started
+description: Panduan awal menggunakan Socialchat Partner API.
 ---
 
-## Selamat datang
+# Getting Started
 
-Project ini sudah berisi setup **Fumadocs** untuk halaman dokumentasi dan **Fumadocs OpenAPI** untuk render referensi API interaktif berbasis Scalar.
+**Socialchat** adalah platform **CRM omnichannel** yang membantu bisnis mengelola komunikasi pelanggan dari berbagai kanal dalam satu dashboard terintegrasi, seperti **WhatsApp, Instagram, Facebook Messenger, Telegram, dan Live Chat website**.
 
-Mulai dari halaman [OpenAPI](./openapi) untuk melihat endpoint contoh.
+Melalui **Socialchat Partner API**, kamu dapat menghubungkan aplikasi atau sistem internal dengan Socialchat untuk mengelola channel, percakapan, pesan, webhook, dan kebutuhan integrasi lain secara terprogram.
 
-## Yang sudah dipasang
+## Apa yang bisa dilakukan dengan API ini?
 
-- Next.js App Router
-- Fumadocs UI + MDX
-- Fumadocs OpenAPI
-- Search endpoint lokal
-- Proxy endpoint untuk playground API
+Dengan Partner API, kamu dapat:
+
+- Mengambil dan memperbarui informasi partner.
+- Mengelola channel yang terhubung ke Socialchat.
+- Mengambil daftar percakapan dan detail percakapan.
+- Mengirim pesan melalui channel yang tersedia.
+- Mengatur webhook untuk menerima event dari Socialchat.
+- Mengintegrasikan Socialchat dengan sistem eksternal seperti CRM, backend internal, atau automation tools.
+
+## Alur penggunaan singkat
+
+1. **Siapkan akun Socialchat** dan pastikan akses API sudah tersedia.
+2. **Ambil API key** dari pengaturan akun Socialchat.
+3. **Gunakan Base URL production** berikut untuk request API:
+
+```txt
+https://api.socialchat.id/partner/
+```
+
+4. **Tambahkan header autentikasi** pada setiap request:
+
+```http
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+5. Mulai eksplorasi endpoint melalui dokumentasi API yang tersedia.
+
+## Langkah berikutnya
+
+Baca halaman [Authentication](./api-reference-guide/authentication) untuk memahami cara memakai API key pada setiap request.
