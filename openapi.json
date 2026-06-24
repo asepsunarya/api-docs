@@ -18601,7 +18601,7 @@
   "tags": [],
   "servers": [
     {
-      "url": "https://staging-api.socialchat.id/partner/"
+      "url": "https://api.socialchat.id/partner/"
     }
   ],
   "components": {
