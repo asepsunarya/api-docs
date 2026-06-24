@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/admin/auth';
 import { adminCollections } from '@/lib/admin/collections';
 import { siteKey } from '@/lib/admin/data';
 import { openApiSourceSchema } from '@/lib/admin/validation';
-import { NextResponse } from 'next/server';
+import { adminRedirect } from '@/lib/admin/redirect';
 
 export async function POST(request: Request) {
   await requireAdmin();
@@ -25,5 +25,5 @@ export async function POST(request: Request) {
     updatedAt: now,
   });
 
-  return NextResponse.redirect(new URL('/admin/openapi?created=1', request.url), 303);
+  return adminRedirect(request, '/admin/openapi?created=1');
 }

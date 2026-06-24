@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/admin/auth';
 import { adminCollections } from '@/lib/admin/collections';
 import { objectId, siteKey } from '@/lib/admin/data';
 import { navLinkSchema } from '@/lib/admin/validation';
-import { NextResponse } from 'next/server';
+import { adminRedirect } from '@/lib/admin/redirect';
 
 export async function POST(request: Request, props: RouteContext<'/api/admin/nav-links/[id]'>) {
   await requireAdmin();
@@ -13,7 +13,7 @@ export async function POST(request: Request, props: RouteContext<'/api/admin/nav
 
   if (intent === 'delete') {
     await collections.navLinks.deleteOne({ _id: objectId(id), siteKey });
-    return NextResponse.redirect(new URL('/admin/nav?deleted=1', request.url), 303);
+    return adminRedirect(request, '/admin/nav?deleted=1');
   }
 
   const parsed = navLinkSchema.parse({ ...Object.fromEntries(form), isActive: form.get('isActive') === 'on' });
@@ -22,5 +22,5 @@ export async function POST(request: Request, props: RouteContext<'/api/admin/nav
     { $set: { ...parsed, updatedAt: new Date() } },
   );
 
-  return NextResponse.redirect(new URL('/admin/nav?saved=1', request.url), 303);
+  return adminRedirect(request, '/admin/nav?saved=1');
 }

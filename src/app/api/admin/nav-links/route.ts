@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/admin/auth';
 import { adminCollections } from '@/lib/admin/collections';
 import { siteKey } from '@/lib/admin/data';
 import { navLinkSchema } from '@/lib/admin/validation';
-import { NextResponse } from 'next/server';
+import { adminRedirect } from '@/lib/admin/redirect';
 
 export async function POST(request: Request) {
   await requireAdmin();
@@ -12,5 +12,5 @@ export async function POST(request: Request) {
 
   await (await adminCollections()).navLinks.insertOne({ siteKey, ...parsed, createdAt: now, updatedAt: now });
 
-  return NextResponse.redirect(new URL('/admin/nav?created=1', request.url), 303);
+  return adminRedirect(request, '/admin/nav?created=1');
 }

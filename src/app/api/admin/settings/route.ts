@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/admin/auth';
 import { adminCollections } from '@/lib/admin/collections';
 import { siteKey } from '@/lib/admin/data';
 import { settingsSchema } from '@/lib/admin/validation';
-import { NextResponse } from 'next/server';
+import { adminRedirect } from '@/lib/admin/redirect';
 
 export async function POST(request: Request) {
   await requireAdmin();
@@ -23,5 +23,5 @@ export async function POST(request: Request) {
     { upsert: true },
   );
 
-  return NextResponse.redirect(new URL('/admin/settings?saved=1', request.url), 303);
+  return adminRedirect(request, '/admin/settings?saved=1');
 }

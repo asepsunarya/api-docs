@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/admin/auth';
 import { adminCollections } from '@/lib/admin/collections';
 import { objectId, siteKey } from '@/lib/admin/data';
 import { docPageSchema } from '@/lib/admin/validation';
-import { NextResponse } from 'next/server';
+import { adminRedirect } from '@/lib/admin/redirect';
 
 export async function POST(request: Request, props: RouteContext<'/api/admin/pages/[id]'>) {
   await requireAdmin();
@@ -13,7 +13,7 @@ export async function POST(request: Request, props: RouteContext<'/api/admin/pag
 
   if (intent === 'delete') {
     await collections.pages.deleteOne({ _id: objectId(id), siteKey });
-    return NextResponse.redirect(new URL('/admin/pages?deleted=1', request.url), 303);
+    return adminRedirect(request, '/admin/pages?deleted=1');
   }
 
   const parsed = docPageSchema.parse(Object.fromEntries(form));
@@ -22,5 +22,5 @@ export async function POST(request: Request, props: RouteContext<'/api/admin/pag
     { $set: { ...parsed, updatedAt: new Date() } },
   );
 
-  return NextResponse.redirect(new URL('/admin/pages?saved=1', request.url), 303);
+  return adminRedirect(request, '/admin/pages?saved=1');
 }
