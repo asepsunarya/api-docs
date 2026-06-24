@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/admin/auth';
 import { adminCollections } from '@/lib/admin/collections';
 import { objectId, siteKey } from '@/lib/admin/data';
 import { openApiSourceSchema } from '@/lib/admin/validation';
-import { NextResponse } from 'next/server';
+import { adminRedirect } from '@/lib/admin/redirect';
 
 export async function POST(request: Request, props: RouteContext<'/api/admin/openapi-sources/[id]'>) {
   await requireAdmin();
@@ -14,7 +14,7 @@ export async function POST(request: Request, props: RouteContext<'/api/admin/ope
 
   if (intent === 'delete') {
     await collections.openapiSources.deleteOne({ _id: objectId(id), siteKey });
-    return NextResponse.redirect(new URL('/admin/openapi?deleted=1', request.url), 303);
+    return adminRedirect(request, '/admin/openapi?deleted=1');
   }
 
   const parsed = openApiSourceSchema.parse({
@@ -31,5 +31,5 @@ export async function POST(request: Request, props: RouteContext<'/api/admin/ope
     { $set: { ...parsed, updatedAt: now } },
   );
 
-  return NextResponse.redirect(new URL('/admin/openapi?saved=1', request.url), 303);
+  return adminRedirect(request, '/admin/openapi?saved=1');
 }
