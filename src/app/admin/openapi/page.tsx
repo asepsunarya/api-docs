@@ -10,7 +10,7 @@ export default async function OpenApiAdminPage(props: PageProps<'/admin/openapi'
   await requireAdmin();
   const searchParams = await props.searchParams;
   const sources = await (await adminCollections()).openapiSources.find({ siteKey }).sort({ updatedAt: -1 }).toArray();
-  const defaultUrl = process.env.DEFAULT_OPENAPI_SOURCE_URL ?? 'https://staging-api.socialchat.id/partner/explorer-json';
+  const defaultUrl = process.env.DEFAULT_OPENAPI_SOURCE_URL ?? 'https://api.socialchat.id/partner/explorer-json';
 
   return (
     <AdminShell>
