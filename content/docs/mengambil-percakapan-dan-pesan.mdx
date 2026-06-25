@@ -1,0 +1,294 @@
+---
+title: Mengambil Percakapan dan Pesan
+description: Tutorial mengambil daftar percakapan, detail percakapan, riwayat pesan, dan pencarian pesan Socialchat Partner API.
+---
+
+Tutorial ini menjelaskan cara mengambil data percakapan dan pesan dari Socialchat Partner API. Alur umum yang disarankan adalah mengambil daftar conversation terlebih dahulu, menyimpan `conversationId`, lalu mengambil riwayat pesan dari conversation tersebut.
+
+## Prasyarat
+
+Sebelum mulai, pastikan kamu sudah memiliki:
+
+- API key Socialchat Partner API.
+- Channel yang sudah memiliki conversation dan pesan.
+- Rentang tanggal yang ingin dibaca.
+
+Gunakan Base URL berikut:
+
+```txt
+https://api.socialchat.id/partner
+```
+
+Semua request membutuhkan header authorization:
+
+```http
+Authorization: Bearer ***
+Content-Type: application/json
+```
+
+## 1. Ambil daftar percakapan
+
+Referensi API: [GET /conversation](/docs/openapi/conversation-controller/ConversationController_getConversation)
+
+Gunakan endpoint ini untuk mengambil daftar conversation. Response berisi data customer/sender, channel, status conversation, dan `lastMessage`.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/conversation?page=1&limit=10&fromDate=2026-06-01T00:00:00.000Z&toDate=2026-06-25T23:59:59.000Z" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response ringkas:
+
+```json
+{
+  "docs": [
+    {
+      "_id": "65b37833afe781e84afa001f",
+      "senderId": "6281234567890",
+      "senderName": "Budi",
+      "senderPicture": "https://cdn.picture.com/image.jpg",
+      "unreadCount": 2,
+      "isCompleted": false,
+      "channelBy": {
+        "_id": "65b37833afe781e84afa001a",
+        "channelType": "whatsapp-official"
+      },
+      "lastMessage": {
+        "senderId": "6281234567890",
+        "type": "text",
+        "statusRead": "pending",
+        "text": "Halo, saya mau tanya produk",
+        "sendBy": "sender",
+        "sendAt": "2026-06-25T09:00:00.000Z"
+      },
+      "firstMessageAt": "2026-06-25T08:50:00.000Z",
+      "lastMessageFromSenderAt": "2026-06-25T09:00:00.000Z",
+      "createdAt": "2026-06-25T08:50:00.000Z",
+      "updatedAt": "2026-06-25T09:00:00.000Z"
+    }
+  ],
+  "totalDocs": 1,
+  "limit": 10,
+  "totalPages": 1,
+  "page": 1,
+  "hasNextPage": false
+}
+```
+
+Simpan nilai `_id` conversation:
+
+```txt
+CONVERSATION_ID=65b37833afe781e84afa001f
+```
+
+Parameter yang sering dipakai:
+
+- `page`: nomor halaman.
+- `limit`: jumlah data per halaman.
+- `fromDate`: tanggal awal filter conversation.
+- `toDate`: tanggal akhir filter conversation.
+- `channelIds`: filter berdasarkan ID channel.
+- `channelTypes`: filter tipe channel seperti `whatsapp-official`, `whatsapp-unofficial`, `instagram`, `messenger`, `telegram`, `webchat`, atau `linkchat`.
+- `labelIds`: filter berdasarkan label.
+- `status`: filter status seperti `unread`, `unanswered`, `completed`, `uncompleted`, atau `unassigned`.
+- `search`: pencarian berdasarkan nama atau informasi conversation.
+
+## 2. Ambil detail satu percakapan
+
+Referensi API: [GET conversation detail](/docs/openapi/conversation-controller/ConversationController_getOneConversation)
+
+Gunakan endpoint ini jika kamu sudah memiliki `conversationId` dan ingin mengambil detail conversation tertentu.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/conversation/65b37833afe781e84afa001f" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response:
+
+```json
+{
+  "_id": "65b37833afe781e84afa001f",
+  "senderId": "6281234567890",
+  "senderName": "Budi",
+  "senderPicture": "https://cdn.picture.com/image.jpg",
+  "unreadCount": 2,
+  "isCompleted": false,
+  "channelBy": {
+    "_id": "65b37833afe781e84afa001a",
+    "channelType": "whatsapp-official"
+  },
+  "lastMessage": {
+    "senderId": "6281234567890",
+    "type": "text",
+    "statusRead": "pending",
+    "text": "Halo, saya mau tanya produk",
+    "sendBy": "sender",
+    "sendAt": "2026-06-25T09:00:00.000Z"
+  },
+  "firstMessageAt": "2026-06-25T08:50:00.000Z",
+  "lastMessageFromSenderAt": "2026-06-25T09:00:00.000Z",
+  "createdAt": "2026-06-25T08:50:00.000Z",
+  "updatedAt": "2026-06-25T09:00:00.000Z"
+}
+```
+
+## 3. Ambil riwayat pesan dari percakapan
+
+Referensi API: [GET conversation messages](/docs/openapi/message-api/MessageController_getMessage)
+
+Gunakan endpoint ini untuk mengambil daftar pesan dari conversation. Path `id` adalah `_id` dari conversation.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/message/65b37833afe781e84afa001f?nextToken=" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response:
+
+```json
+{
+  "_id": "65b37833afe781e84afa001f",
+  "messages": [
+    {
+      "_id": "65b37833afe781e84afa0020",
+      "conversationId": "65b37833afe781e84afa001f",
+      "messageId": "wamid.HBgMNjI4MTIzNDU2Nzg5MA",
+      "senderId": "6281234567890",
+      "text": "Halo, saya mau tanya produk",
+      "type": "text",
+      "statusRead": "pending",
+      "sendAt": "2026-06-25T09:00:00.000Z",
+      "isForward": false,
+      "channelBy": {
+        "_id": "65b37833afe781e84afa001a",
+        "channelType": "whatsapp-official"
+      }
+    },
+    {
+      "_id": "65b37833afe781e84afa0021",
+      "conversationId": "65b37833afe781e84afa001f",
+      "messageId": "wamid.HBgMNjI4MTIzNDU2Nzg5MA-media",
+      "senderId": "6281234567890",
+      "text": "",
+      "type": "media",
+      "statusRead": "pending",
+      "sendAt": "2026-06-25T09:05:00.000Z",
+      "isForward": false,
+      "media": {
+        "url": "https://manypage-s3-production.my.id/chats/messages/images/example.jpg",
+        "type": "image",
+        "mimetype": "image/jpeg",
+        "thumbnail": "base64-data"
+      }
+    }
+  ],
+  "hasNextPage": true,
+  "nextToken": "EAAFT2K8yEQwBOyuU47UknSc3KqbWefmN..."
+}
+```
+
+Jika `hasNextPage` bernilai `true`, gunakan `nextToken` untuk mengambil halaman pesan berikutnya:
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/message/65b37833afe781e84afa001f?nextToken=EAAFT2K8yEQwBOyuU47UknSc3KqbWefmN..." \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+## 4. Cari pesan berdasarkan kata kunci
+
+Referensi API: [GET /message search](/docs/openapi/message-api/MessageController_searchMessage)
+
+Gunakan endpoint search message untuk mencari pesan berdasarkan teks. Kamu juga bisa membatasi pencarian pada conversation tertentu dengan `conversationId`.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/message?page=1&limit=10&search=produk&conversationId=65b37833afe781e84afa001f" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response:
+
+```json
+{
+  "data": [
+    {
+      "_id": "65b37833afe781e84afa0020",
+      "conversationId": "65b37833afe781e84afa001f",
+      "text": "Halo, saya mau tanya produk",
+      "type": "text",
+      "sendAt": "2026-06-25T09:00:00.000Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 10
+}
+```
+
+Parameter penting:
+
+- `page`: nomor halaman.
+- `limit`: jumlah data per halaman.
+- `search`: kata kunci pencarian pesan.
+- `conversationId`: opsional, untuk membatasi pencarian pada satu conversation.
+
+## 5. Ambil conversation berdasarkan stage
+
+Referensi API: [GET conversation by stage](/docs/openapi/conversation-controller/ConversationController_getConversationsByStage)
+
+Jika conversation sudah masuk ke stage tertentu, kamu bisa mengambil daftar conversation berdasarkan `stageId`.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/conversation/stage?page=1&limit=10&stageId=60d5ecb8b392d7001f3e5678" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+## Ringkasan alur
+
+1. Ambil daftar conversation lewat `GET /conversation`.
+2. Simpan `_id` conversation sebagai `conversationId`.
+3. Jika perlu, ambil detail conversation lewat endpoint detail conversation.
+4. Ambil riwayat pesan lewat `GET /message/{conversationId}`.
+5. Jika `hasNextPage` bernilai `true`, lanjutkan request memakai `nextToken`.
+6. Gunakan search message jika ingin mencari pesan berdasarkan kata kunci.
+
+## Field penting conversation
+
+- `_id`: ID conversation.
+- `senderId`: ID atau nomor pengirim/customer.
+- `senderName`: nama pengirim/customer.
+- `unreadCount`: jumlah pesan belum dibaca.
+- `isCompleted`: status selesai atau belum.
+- `channelBy._id`: ID channel Socialchat.
+- `channelBy.channelType`: tipe channel.
+- `lastMessage`: pesan terakhir pada conversation.
+- `firstMessageAt`: waktu pesan pertama.
+- `lastMessageFromSenderAt`: waktu pesan terakhir dari sender/customer.
+
+## Field penting message
+
+- `_id`: ID pesan di Socialchat.
+- `conversationId`: ID conversation pemilik pesan.
+- `messageId`: ID pesan dari channel asal jika tersedia.
+- `senderId`: ID pengirim pesan.
+- `text`: isi pesan teks.
+- `type`: tipe pesan, misalnya `text`, `media`, `location`, `contact`, `product`, `polling`, atau `facebook-ad`.
+- `statusRead`: status baca pesan, misalnya `read` atau `pending`.
+- `sendAt`: waktu pesan dikirim.
+- `media`: detail media jika tipe pesan adalah media.
+- `location`: detail lokasi jika tipe pesan adalah location.
+- `contact`: detail kontak jika tipe pesan adalah contact.
+
+## Troubleshooting
+
+- Jika conversation kosong, cek `fromDate` dan `toDate` karena filter tanggal wajib digunakan.
+- Jika pesan kosong, pastikan `id` pada endpoint message adalah `_id` conversation.
+- Jika halaman berikutnya tidak muncul, cek nilai `hasNextPage` dan `nextToken`.
+- Jika pencarian pesan tidak menemukan data, coba gunakan kata kunci lebih pendek atau hilangkan `conversationId`.
+- Jangan menaruh API key di frontend publik. Lakukan request dari backend/server partner.
