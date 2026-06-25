@@ -1,5 +1,6 @@
 import { adminCollections } from './collections';
 import { objectId, siteKey } from './data';
+import { serializeOpenApiSchemaForMongo } from './openapi-schema-storage';
 import { normalizeOpenApiDocument } from '../openapi-normalize';
 import { validateOpenApiDocument } from './validation';
 
@@ -27,7 +28,7 @@ export async function syncOpenApiSource(id: string) {
     { _id: source._id },
     {
       $set: {
-        schemaJson,
+        schemaJson: serializeOpenApiSchemaForMongo(schemaJson),
         lastSyncedAt: now,
         updatedAt: now,
       },

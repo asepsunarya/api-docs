@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { requireAdmin } from '@/lib/admin/auth';
 import { adminCollections } from '@/lib/admin/collections';
 import { siteKey } from '@/lib/admin/data';
+import { parseStoredOpenApiSchema } from '@/lib/admin/openapi-schema-storage';
 import { dateString, idString } from '@/lib/admin/ui';
 import { AdminShell, buttonClass, Card, dangerButtonClass, Field, inputClass, secondaryButtonClass } from '../_components';
 
@@ -33,7 +34,7 @@ export default async function OpenApiAdminPage(props: PageProps<'/admin/openapi'
       <div className="grid gap-4">
         {sources.map((source) => {
           const id = idString(source._id);
-          const schema = source.schemaJson as { paths?: Record<string, unknown>; info?: { title?: string; version?: string } } | undefined;
+          const schema = parseStoredOpenApiSchema(source.schemaJson);
           return (
             <Card key={id}>
               <form action={`/api/admin/openapi-sources/${id}`} method="post" className="grid gap-4">

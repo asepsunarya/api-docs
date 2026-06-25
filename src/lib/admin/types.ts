@@ -17,7 +17,8 @@ export interface OpenApiSource {
   siteKey: SiteKey;
   name: string;
   sourceUrl: string;
-  schemaJson?: unknown;
+  /** Stored as a JSON string to avoid MongoDB treating OpenAPI `$ref` fields as DBRef documents. */
+  schemaJson?: string | unknown;
   isActive: boolean;
   lastSyncedAt?: Date;
   createdAt: Date;
