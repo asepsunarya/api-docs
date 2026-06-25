@@ -1,0 +1,283 @@
+---
+title: Penggunaan Webhook
+description: Tutorial mengatur webhook Socialchat, kegunaannya, dan contoh payload event yang diterima.
+---
+
+Webhook digunakan agar sistem partner bisa menerima event dari Socialchat secara otomatis. Dengan webhook, aplikasi kamu tidak perlu polling API terus-menerus untuk mengetahui pesan baru, perubahan percakapan, atau event integrasi lainnya.
+
+## Apa yang bisa dilakukan webhook?
+
+Webhook dapat digunakan untuk beberapa kebutuhan integrasi, misalnya:
+
+- Menerima pesan masuk dari pelanggan.
+- Menerima update percakapan atau kontak.
+- Meneruskan pesan ke CRM internal.
+- Menjalankan automation ketika ada pesan baru.
+- Membuat tiket support dari conversation Socialchat.
+- Menyimpan arsip pesan ke database partner.
+- Menghubungkan Socialchat dengan sistem order, loyalty, chatbot, atau helpdesk.
+
+## Prasyarat
+
+Sebelum mengatur webhook, pastikan kamu sudah memiliki:
+
+- API key Socialchat Partner API.
+- URL webhook publik yang bisa menerima request `POST`.
+- Endpoint webhook menggunakan HTTPS.
+- Server webhook membalas response `2xx` dengan cepat.
+
+Contoh URL webhook:
+
+```txt
+https://api.example.com/socialchat/webhook
+```
+
+## 1. Cek konfigurasi webhook saat ini
+
+Referensi API: [GET Partner](/docs/openapi/partner-api/PartnerController_getPartner)
+
+Gunakan endpoint Partner untuk melihat konfigurasi webhook yang sedang aktif.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response:
+
+```json
+{
+  "webhookUrl": "https://api.example.com/socialchat/webhook",
+  "callbackMessengerUrl": "https://example.com/callback/messenger",
+  "callbackInstagramUrl": "https://example.com/callback/instagram",
+  "webhookSecondaryUrls": [
+    "https://api.example.com/socialchat/webhook-secondary"
+  ]
+}
+```
+
+Field penting:
+
+- `webhookUrl`: URL utama penerima event Socialchat.
+- `webhookSecondaryUrls`: daftar URL tambahan jika event perlu dikirim ke lebih dari satu endpoint.
+- `callbackMessengerUrl`: callback URL untuk flow Messenger.
+- `callbackInstagramUrl`: callback URL untuk flow Instagram.
+
+## 2. Update URL webhook
+
+Referensi API: [PUT Partner](/docs/openapi/partner-api/PartnerController_updatePartner)
+
+Gunakan endpoint update Partner untuk menyimpan URL webhook.
+
+```bash
+curl -X PUT "https://api.socialchat.id/partner/" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "webhookUrl": "https://api.example.com/socialchat/webhook",
+    "callbackMessengerUrl": "https://example.com/callback/messenger",
+    "callbackInstagramUrl": "https://example.com/callback/instagram",
+    "webhookSecondaryUrls": [
+      "https://api.example.com/socialchat/webhook-secondary"
+    ]
+  }'
+```
+
+Jika hanya memakai satu endpoint webhook, isi `webhookUrl` saja dan gunakan `webhookSecondaryUrls` sebagai array kosong atau tidak dikirim jika tidak dibutuhkan.
+
+## 3. Siapkan endpoint penerima webhook
+
+Endpoint webhook di server partner harus menerima request `POST` dengan body JSON.
+
+Contoh sederhana menggunakan Express:
+
+```js
+const express = require('express')
+const app = express()
+
+app.use(express.json({ limit: '5mb' }))
+
+app.post('/socialchat/webhook', async (req, res) => {
+  const payload = req.body
+
+  console.log('Webhook Socialchat:', JSON.stringify(payload, null, 2))
+
+  // Proses event secara async jika butuh pekerjaan berat.
+  // Simpan payload ke queue/database, lalu balas 200 secepat mungkin.
+
+  return res.status(200).json({ received: true })
+})
+
+app.listen(3000, () => console.log('Webhook server running'))
+```
+
+Rekomendasi:
+
+- Balas `200 OK` secepat mungkin.
+- Jangan menjalankan proses berat sebelum response.
+- Simpan payload ke queue jika perlu integrasi lanjutan.
+- Pastikan endpoint idempotent agar aman jika event dikirim ulang.
+
+## 4. Isi webhook yang diterima
+
+Payload webhook dapat berbeda sesuai jenis event dan channel. Secara umum, payload berisi data event, channel, conversation, sender/contact, dan message jika event berkaitan dengan pesan.
+
+### Contoh event pesan masuk teks
+
+```json
+{
+  "event": "incoming_message",
+  "conversation": {
+    "_id": "65b37833afe781e84afa001f",
+    "senderId": "6281234567890",
+    "senderName": "Budi",
+    "senderPicture": "https://cdn.example.com/profile.jpg",
+    "unreadCount": 1,
+    "isCompleted": false,
+    "channelBy": {
+      "_id": "65b37833afe781e84afa001a",
+      "channelType": "whatsapp-official"
+    },
+    "lastMessage": {
+      "senderId": "6281234567890",
+      "type": "text",
+      "statusRead": "pending",
+      "text": "Halo, saya mau tanya produk",
+      "sendBy": "sender",
+      "sendAt": "2026-06-25T09:00:00.000Z"
+    }
+  },
+  "message": {
+    "_id": "65b37833afe781e84afa0020",
+    "conversationId": "65b37833afe781e84afa001f",
+    "messageId": "wamid.HBgMNjI4MTIzNDU2Nzg5MA",
+    "senderId": "6281234567890",
+    "text": "Halo, saya mau tanya produk",
+    "type": "text",
+    "statusRead": "pending",
+    "sendAt": "2026-06-25T09:00:00.000Z",
+    "isForward": false,
+    "channelBy": {
+      "_id": "65b37833afe781e84afa001a",
+      "channelType": "whatsapp-official"
+    }
+  }
+}
+```
+
+### Contoh event pesan media
+
+```json
+{
+  "event": "incoming_message",
+  "message": {
+    "_id": "65b37833afe781e84afa0021",
+    "conversationId": "65b37833afe781e84afa001f",
+    "messageId": "wamid.HBgMNjI4MTIzNDU2Nzg5MA-media",
+    "senderId": "6281234567890",
+    "text": "",
+    "type": "media",
+    "statusRead": "pending",
+    "sendAt": "2026-06-25T09:05:00.000Z",
+    "isForward": false,
+    "channelBy": {
+      "_id": "65b37833afe781e84afa001a",
+      "channelType": "whatsapp-official"
+    },
+    "media": {
+      "url": "https://manypage-s3-production.my.id/chats/messages/images/example.jpg",
+      "type": "image",
+      "mimetype": "image/jpeg",
+      "thumbnail": "base64-data"
+    }
+  }
+}
+```
+
+### Contoh event pesan lokasi
+
+```json
+{
+  "event": "incoming_message",
+  "message": {
+    "_id": "65b37833afe781e84afa0022",
+    "conversationId": "65b37833afe781e84afa001f",
+    "messageId": "wamid.HBgMNjI4MTIzNDU2Nzg5MA-location",
+    "senderId": "6281234567890",
+    "text": "",
+    "type": "location",
+    "statusRead": "pending",
+    "sendAt": "2026-06-25T09:10:00.000Z",
+    "isForward": false,
+    "location": {
+      "latitude": "-6.200000",
+      "longitude": "106.816666"
+    },
+    "channelBy": {
+      "_id": "65b37833afe781e84afa001a",
+      "channelType": "whatsapp-official"
+    }
+  }
+}
+```
+
+### Contoh event kontak
+
+```json
+{
+  "event": "incoming_message",
+  "message": {
+    "_id": "65b37833afe781e84afa0023",
+    "conversationId": "65b37833afe781e84afa001f",
+    "messageId": "wamid.HBgMNjI4MTIzNDU2Nzg5MA-contact",
+    "senderId": "6281234567890",
+    "text": "",
+    "type": "contact",
+    "statusRead": "pending",
+    "sendAt": "2026-06-25T09:15:00.000Z",
+    "isForward": false,
+    "contact": {
+      "name": "Budi Santoso",
+      "picture": "https://cdn.example.com/contact.jpg",
+      "number": "6281234567890",
+      "direct": "wa.me/6281234567890"
+    },
+    "channelBy": {
+      "_id": "65b37833afe781e84afa001a",
+      "channelType": "whatsapp-official"
+    }
+  }
+}
+```
+
+## Field penting pada payload
+
+- `event`: jenis event yang dikirim oleh Socialchat.
+- `conversation._id`: ID percakapan di Socialchat.
+- `conversation.senderId`: ID atau nomor pengirim.
+- `conversation.senderName`: nama kontak/pengirim.
+- `message._id`: ID pesan di Socialchat.
+- `message.messageId`: ID pesan dari channel asal jika tersedia.
+- `message.type`: tipe pesan, misalnya `text`, `media`, `location`, `contact`, `product`, atau `polling`.
+- `message.text`: isi pesan teks.
+- `message.media`: detail file jika pesan berupa media.
+- `message.channelBy._id`: ID channel Socialchat.
+- `message.channelBy.channelType`: tipe channel, misalnya `whatsapp-official`, `whatsapp-unofficial`, `telegram`, `instagram`, `messenger`, `webchat`, atau `linkchat`.
+
+## Best practice
+
+- Validasi bahwa request datang ke endpoint yang benar.
+- Simpan raw payload untuk kebutuhan debugging.
+- Gunakan queue/job worker untuk proses berat seperti kirim ke CRM atau upload file tambahan.
+- Balas `2xx` secepat mungkin agar Socialchat menganggap webhook berhasil diterima.
+- Hindari response lambat atau timeout karena dapat menyebabkan retry atau event terlihat gagal.
+- Jangan menaruh secret/API key di URL webhook.
+
+## Troubleshooting
+
+- Jika webhook tidak diterima, cek ulang `webhookUrl` di Partner API.
+- Pastikan URL webhook publik, HTTPS, dan tidak diblokir firewall.
+- Pastikan server mengizinkan method `POST` dan header `Content-Type: application/json`.
+- Jika payload media tidak bisa diakses, cek apakah URL media masih valid dan dapat diakses dari server partner.
+- Jika event dobel, buat proses idempotent berdasarkan `message._id` atau `message.messageId`.
