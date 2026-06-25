@@ -1,0 +1,65 @@
+---
+title: Payload Template Utility - Default
+description: Contoh payload create template kategori Utility default untuk WhatsApp API.
+---
+
+Gunakan payload ini untuk template **Utility**, misalnya konfirmasi pesanan, update transaksi, pengingat pembayaran, atau informasi akun yang diminta user.
+
+Referensi API: [POST template create](/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_createTemplateMessage)
+
+```txt
+POST /channel/whatsapp-official/{id}/template/create
+```
+
+## Payload create template
+
+```json
+{
+  "name": "konfirmasi_pesanan",
+  "category": "UTILITY",
+  "language": "id",
+  "components": [
+    { "type": "HEADER", "format": "TEXT", "text": "Konfirmasi Pesanan" },
+    { "type": "BODY", "text": "Halo {{1}}, pesanan kamu dengan nomor {{2}} sudah kami terima. Total pembayaran adalah {{3}}." },
+    { "type": "FOOTER", "text": "Terima kasih" }
+  ]
+}
+```
+
+## Contoh payload kirim
+
+Referensi API: [POST send template](/docs/openapi/message-api/MessageController_sendWhatsAppApiMessageToPhoneNumber)
+
+```json
+{
+  "channelId": "65b37833afe781e84afa001f",
+  "phoneNumber": "6281234567890",
+  "templateId": "1264704961579504",
+  "payloads": [
+    {
+      "type": "header",
+      "text": "Konfirmasi Pesanan",
+      "parameters": [{ "status": "static", "type": "text", "text": "Konfirmasi Pesanan", "example": { "title": "", "value": "" } }]
+    },
+    {
+      "type": "body",
+      "text": "Halo Budi, pesanan kamu dengan nomor INV-001 sudah kami terima. Total pembayaran adalah Rp150.000.",
+      "parameters": [
+        { "status": "static", "type": "text", "text": "Budi", "example": { "title": "nama", "value": "Budi" } },
+        { "status": "static", "type": "text", "text": "INV-001", "example": { "title": "nomor_pesanan", "value": "INV-001" } },
+        { "status": "static", "type": "text", "text": "Rp150.000", "example": { "title": "total_pembayaran", "value": "Rp150.000" } }
+      ]
+    },
+    {
+      "type": "footer",
+      "text": "Terima kasih",
+      "parameters": [{ "status": "static", "type": "text", "text": "Terima kasih", "example": { "title": "", "value": "" } }]
+    }
+  ]
+}
+```
+
+## Catatan
+
+- Cocok untuk pesan transaksional atau update yang berhubungan dengan aktivitas user.
+- Jangan memasukkan promo/cross-sell agar template tidak dikategorikan sebagai Marketing.

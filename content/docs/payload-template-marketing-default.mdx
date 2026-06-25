@@ -1,0 +1,71 @@
+---
+title: Payload Template Marketing - Default
+description: Contoh payload create template kategori Marketing default untuk WhatsApp API.
+---
+
+Gunakan payload ini untuk membuat template **Marketing** umum, misalnya promo, penawaran, campaign, atau update produk.
+
+Referensi API: [POST template create](/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_createTemplateMessage)
+
+```txt
+POST /channel/whatsapp-official/{id}/template/create
+```
+
+## Payload create template
+
+```json
+{
+  "name": "promo_bulan_ini",
+  "category": "MARKETING",
+  "language": "id",
+  "components": [
+    { "type": "HEADER", "format": "TEXT", "text": "Promo Spesial" },
+    { "type": "BODY", "text": "Halo {{1}}, dapatkan promo {{2}} khusus bulan ini. Berlaku sampai {{3}}." },
+    { "type": "FOOTER", "text": "Socialchat" },
+    {
+      "type": "BUTTONS",
+      "buttons": [
+        { "type": "URL", "text": "Lihat Promo", "url": "https://example.com/promo" }
+      ]
+    }
+  ]
+}
+```
+
+## Contoh payload kirim
+
+Referensi API: [POST send template](/docs/openapi/message-api/MessageController_sendWhatsAppApiMessageToPhoneNumber)
+
+```json
+{
+  "channelId": "65b37833afe781e84afa001f",
+  "phoneNumber": "6281234567890",
+  "templateId": "1264704961579504",
+  "payloads": [
+    {
+      "type": "header",
+      "text": "Promo Spesial",
+      "parameters": [{ "status": "static", "type": "text", "text": "Promo Spesial", "example": { "title": "", "value": "" } }]
+    },
+    {
+      "type": "body",
+      "text": "Halo Budi, dapatkan promo diskon 30% khusus bulan ini. Berlaku sampai 30 Juni 2026.",
+      "parameters": [
+        { "status": "static", "type": "text", "text": "Budi", "example": { "title": "nama", "value": "Budi" } },
+        { "status": "static", "type": "text", "text": "diskon 30%", "example": { "title": "promo", "value": "diskon 30%" } },
+        { "status": "static", "type": "text", "text": "30 Juni 2026", "example": { "title": "masa_berlaku", "value": "30 Juni 2026" } }
+      ]
+    },
+    {
+      "type": "footer",
+      "text": "Socialchat",
+      "parameters": [{ "status": "static", "type": "text", "text": "Socialchat", "example": { "title": "", "value": "" } }]
+    }
+  ]
+}
+```
+
+## Catatan
+
+- Cocok untuk pesan yang bersifat promosi atau ajakan pembelian.
+- Placeholder harus diisi berurutan saat pengiriman.

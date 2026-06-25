@@ -1,0 +1,60 @@
+---
+title: Payload Template Authentication - Default
+description: Contoh payload create template kategori Authentication default untuk WhatsApp API.
+---
+
+Gunakan payload ini untuk template **Authentication**, misalnya OTP, kode verifikasi, atau proses login yang diminta user.
+
+Referensi API: [POST template create](/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_createTemplateMessage)
+
+```txt
+POST /channel/whatsapp-official/{id}/template/create
+```
+
+## Payload create template
+
+```json
+{
+  "name": "kode_verifikasi_login",
+  "category": "AUTHENTICATION",
+  "language": "id",
+  "components": [
+    { "type": "BODY", "text": "{{1}} adalah kode verifikasi kamu. Demi keamanan, jangan bagikan kode ini." },
+    { "type": "FOOTER", "text": "Kode ini berlaku selama 10 menit." },
+    {
+      "type": "BUTTONS",
+      "buttons": [{ "type": "OTP", "text": "Salin Kode" }]
+    }
+  ]
+}
+```
+
+## Contoh payload kirim
+
+Referensi API: [POST send template](/docs/openapi/message-api/MessageController_sendWhatsAppApiMessageToPhoneNumber)
+
+```json
+{
+  "channelId": "65b37833afe781e84afa001f",
+  "phoneNumber": "6281234567890",
+  "templateId": "1264704961579504",
+  "payloads": [
+    {
+      "type": "body",
+      "text": "123456 adalah kode verifikasi kamu. Demi keamanan, jangan bagikan kode ini.",
+      "parameters": [{ "status": "static", "type": "text", "text": "123456", "example": { "title": "kode_otp", "value": "123456" } }]
+    },
+    {
+      "type": "footer",
+      "text": "Kode ini berlaku selama 10 menit.",
+      "parameters": [{ "status": "static", "type": "text", "text": "Kode ini berlaku selama 10 menit.", "example": { "title": "", "value": "" } }]
+    }
+  ]
+}
+```
+
+## Catatan
+
+- Gunakan hanya untuk autentikasi, verifikasi, atau recovery akun.
+- Jangan menambahkan promosi, upsell, atau informasi marketing pada template Authentication.
+- Tombol OTP dapat bergantung pada validasi akun dan dukungan format dari WhatsApp API/Meta.
