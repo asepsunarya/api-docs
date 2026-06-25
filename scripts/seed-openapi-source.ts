@@ -1,6 +1,7 @@
 import { adminCollections, ensureAdminIndexes } from '../src/lib/admin/collections';
 import { siteKey } from '../src/lib/admin/data';
 import { fetchOpenApiSchema } from '../src/lib/admin/openapi-sync';
+import { serializeOpenApiSchemaForMongo } from '../src/lib/admin/openapi-schema-storage';
 
 async function main() {
   const sourceUrl = process.env.DEFAULT_OPENAPI_SOURCE_URL ?? process.argv[2];
@@ -19,7 +20,7 @@ async function main() {
         siteKey,
         name: 'Socialchat Staging',
         sourceUrl,
-        schemaJson,
+        schemaJson: serializeOpenApiSchemaForMongo(schemaJson),
         isActive: true,
         lastSyncedAt: now,
         updatedAt: now,
