@@ -3,7 +3,7 @@ import Link from 'next/link';
 const apiShortcuts = [
   {
     title: 'Partner API',
-    description: 'Informasi partner, OAuth, Zapier, dan konfigurasi callback.',
+    description: 'Informasi partner, OAuth, Zapier, dan konfigurasi partner.',
     href: '/docs/openapi/partner-api/PartnerController_getPartner',
   },
   {
@@ -23,13 +23,13 @@ const apiShortcuts = [
   },
   {
     title: 'Webhook API',
-    description: 'Atur webhook untuk menerima event dari Socialchat.',
-    href: '/docs/openapi/partner-api/PartnerController_updatePartner',
+    description: 'Tutorial menerima event webhook dari Socialchat.',
+    href: '/docs/penggunaan-webhook',
   },
   {
-    title: 'WhatsApp Official',
-    description: 'Koneksi akun, template message, dan upload media.',
-    href: '/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_createAccount',
+    title: 'WhatsApp API',
+    description: 'Tutorial kirim template message WhatsApp API.',
+    href: '/docs/kirim-template-message-whatsapp-api',
   },
 ];
 
