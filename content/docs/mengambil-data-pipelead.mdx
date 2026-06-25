@@ -1,0 +1,218 @@
+---
+title: Mengambil Data Pipelead
+description: Tutorial mengambil data pipeline dan lead dari fitur Pipelead Socialchat Partner API.
+---
+
+Pipelead digunakan untuk mengelola prospek atau lead dari percakapan Socialchat ke dalam pipeline dan stage. Tutorial ini menjelaskan cara mengambil daftar pipeline, mengambil lead pada stage tertentu, mengambil lead berdasarkan conversation, dan membaca report lead.
+
+## Prasyarat
+
+Sebelum mulai, pastikan kamu sudah memiliki:
+
+- API key Socialchat Partner API.
+- Channel dan conversation yang sudah memiliki data lead.
+- `chatPipeId` dari pipeline yang ingin dibaca.
+- `chatStageId` jika ingin mengambil lead dari stage tertentu.
+
+Gunakan Base URL berikut:
+
+```txt
+https://api.socialchat.id/partner
+```
+
+Semua request membutuhkan header authorization:
+
+```http
+Authorization: Bearer ***
+Content-Type: application/json
+```
+
+## 1. Ambil daftar pipeline
+
+Referensi API: [GET /chat-pipe](/docs/openapi/chat-pipe-api/ChatPipeController_getChatPipe)
+
+Gunakan endpoint ini untuk mengambil daftar pipeline yang tersedia. Dari response, simpan `_id` pipeline sebagai `chatPipeId`.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/chat-pipe?page=1&limit=10" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response ringkas:
+
+```json
+{
+  "docs": [
+    {
+      "_id": "60d5ecb8b392d7001f3e1234",
+      "name": "Lead Baru",
+      "stages": [
+        {
+          "_id": "60d5ecb8b392d7001f3e5678",
+          "name": "New Lead",
+          "position": 0
+        },
+        {
+          "_id": "60d5ecb8b392d7001f3e5679",
+          "name": "Follow Up",
+          "position": 1
+        }
+      ]
+    }
+  ],
+  "totalDocs": 1,
+  "page": 1,
+  "limit": 10
+}
+```
+
+Simpan nilai berikut:
+
+```txt
+CHAT_PIPE_ID=60d5ecb8b392d7001f3e1234
+CHAT_STAGE_ID=60d5ecb8b392d7001f3e5678
+```
+
+## 2. Ambil data lead berdasarkan pipeline dan stage
+
+Referensi API: [GET /chat-lead](/docs/openapi/chat-lead-controller/ChatLeadController_getLead)
+
+Gunakan endpoint ini untuk mengambil daftar lead pada pipeline dan stage tertentu.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/chat-lead?chatPipeId=60d5ecb8b392d7001f3e1234&chatStageId=60d5ecb8b392d7001f3e5678&page=1&limit=10" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response:
+
+```json
+{
+  "docs": [
+    {
+      "_id": "60d5ecb8b392d7001f3e9999",
+      "status": "open",
+      "createdAt": "2026-06-15T08:07:25.195Z",
+      "updatedAt": "2026-06-15T08:07:25.195Z"
+    }
+  ],
+  "totalDocs": 1,
+  "limit": 10,
+  "totalPages": 1,
+  "page": 1,
+  "pagingCounter": 1,
+  "hasPrevPage": false,
+  "hasNextPage": false,
+  "prevPage": null,
+  "nextPage": null
+}
+```
+
+Parameter penting:
+
+- `chatPipeId`: ID pipeline.
+- `chatStageId`: ID stage pada pipeline.
+- `page`: halaman data.
+- `limit`: jumlah data per halaman.
+
+## 3. Ambil lead berdasarkan conversation
+
+Referensi API: [GET lead by conversation](/docs/openapi/chat-lead-controller/ChatLeadController_getLeadByConversation)
+
+Jika kamu sudah punya `conversationId`, gunakan endpoint ini untuk mengecek lead yang terhubung dengan conversation tersebut.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/chat-lead/conversation/65b37833afe781e84afa001f" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response:
+
+```json
+{
+  "_id": "60d5ecb8b392d7001f3e9999",
+  "status": "open",
+  "createdAt": "2026-06-15T08:07:25.195Z",
+  "updatedAt": "2026-06-15T08:07:25.195Z"
+}
+```
+
+Endpoint ini berguna jika integrasi kamu berangkat dari data conversation atau webhook message, lalu ingin mencari status pipelead dari conversation tersebut.
+
+## 4. Ambil ringkasan report lead
+
+Referensi API: [GET /chat-lead/report/summary](/docs/openapi/chat-lead-controller/ChatLeadController_getReportSummary)
+
+Gunakan report summary untuk mengambil total lead, total won, dan total lost pada periode tertentu.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/chat-lead/report/summary?chatPipeId=60d5ecb8b392d7001f3e1234&typeDate=created&fromDate=2026-01-01T00:00:00.000Z&toDate=2026-12-31T23:59:59.000Z" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response:
+
+```json
+{
+  "totalLeads": 100,
+  "totalWon": 50,
+  "totalLost": 20
+}
+```
+
+Parameter opsional:
+
+- `typeDate`: tipe tanggal filter, contoh `created`.
+- `fromDate`: tanggal awal format ISO 8601.
+- `toDate`: tanggal akhir format ISO 8601.
+- `channelIds`: filter berdasarkan channel tertentu.
+- `chatPipeId`: filter berdasarkan pipeline tertentu.
+
+## 5. Ambil daftar lead untuk report
+
+Referensi API: [GET /chat-lead/report/list](/docs/openapi/chat-lead-controller/ChatLeadController_getReportList)
+
+Endpoint report list digunakan untuk mengambil daftar lead dengan filter report.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/chat-lead/report/list?page=1&limit=10&typeDate=created&fromDate=2026-01-01T00:00:00.000Z&toDate=2026-12-31T23:59:59.000Z" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response mengikuti format pagination yang sama dengan `GET /chat-lead`.
+
+## 6. Export data lead ke CSV
+
+Referensi API: [GET /chat-lead/download](/docs/openapi/chat-lead-controller/ChatLeadController_downloadLeadsCsv)
+
+Jika perlu menarik data lead untuk kebutuhan laporan eksternal, gunakan endpoint download CSV.
+
+```bash
+curl -L -X GET "https://api.socialchat.id/partner/chat-lead/download?chatPipeId=60d5ecb8b392d7001f3e1234&chatStageId=60d5ecb8b392d7001f3e5678" \
+  -H "Authorization: Bearer ***" \
+  -o pipelead.csv
+```
+
+`chatStageId` dapat digunakan jika ingin membatasi export hanya pada stage tertentu.
+
+## Ringkasan alur
+
+1. Ambil daftar pipeline lewat `GET /chat-pipe`.
+2. Simpan `chatPipeId` dan `chatStageId`.
+3. Ambil lead pada pipeline/stage lewat `GET /chat-lead`.
+4. Jika punya `conversationId`, ambil lead lewat endpoint get lead by conversation.
+5. Ambil ringkasan report lewat `GET /chat-lead/report/summary`.
+6. Export CSV lewat `GET /chat-lead/download` jika dibutuhkan.
+
+## Troubleshooting
+
+- Jika data kosong, pastikan `chatPipeId` dan `chatStageId` berasal dari pipeline yang sama.
+- Jika lead tidak ditemukan dari conversation, pastikan conversation tersebut memang sudah masuk ke pipelead.
+- Jika filter tanggal tidak menghasilkan data, cek format tanggal ISO 8601 dan timezone yang dipakai.
+- Jika export CSV gagal, pastikan query minimal menyertakan `chatPipeId`.
+- Jangan menaruh API key di frontend publik. Lakukan request dari backend/server partner.
