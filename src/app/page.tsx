@@ -3,7 +3,7 @@ import Link from 'next/link';
 const apiShortcuts = [
   {
     title: 'Partner API',
-    description: 'Informasi partner, OAuth, Zapier, dan konfigurasi callback.',
+    description: 'Informasi partner, OAuth, Zapier, dan konfigurasi partner.',
     href: '/docs/openapi/partner-api/PartnerController_getPartner',
   },
   {

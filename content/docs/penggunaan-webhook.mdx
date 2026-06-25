@@ -49,8 +49,6 @@ Contoh response:
 ```json
 {
   "webhookUrl": "https://api.example.com/socialchat/webhook",
-  "callbackMessengerUrl": "https://example.com/callback/messenger",
-  "callbackInstagramUrl": "https://example.com/callback/instagram",
   "webhookSecondaryUrls": [
     "https://api.example.com/socialchat/webhook-secondary"
   ]
@@ -61,8 +59,6 @@ Field penting:
 
 - `webhookUrl`: URL utama penerima event Socialchat.
 - `webhookSecondaryUrls`: daftar URL tambahan jika event perlu dikirim ke lebih dari satu endpoint.
-- `callbackMessengerUrl`: callback URL untuk flow Messenger.
-- `callbackInstagramUrl`: callback URL untuk flow Instagram.
 
 ## 2. Update URL webhook
 
@@ -76,8 +72,6 @@ curl -X PUT "https://api.socialchat.id/partner/" \
   -H "Content-Type: application/json" \
   -d '{
     "webhookUrl": "https://api.example.com/socialchat/webhook",
-    "callbackMessengerUrl": "https://example.com/callback/messenger",
-    "callbackInstagramUrl": "https://example.com/callback/instagram",
     "webhookSecondaryUrls": [
       "https://api.example.com/socialchat/webhook-secondary"
     ]
