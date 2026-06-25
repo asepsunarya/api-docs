@@ -29,6 +29,8 @@ Content-Type: application/json
 
 ## 1. Ambil channel WhatsApp API
 
+Referensi API: [GET /channel](/docs/openapi/channel-api/ChannelController_getChannel)
+
 Pertama, ambil daftar channel untuk mendapatkan `_id` channel WhatsApp Official. Nilai `_id` ini akan dipakai sebagai `channelId` pada langkah berikutnya.
 
 ```bash
@@ -66,6 +68,8 @@ CHANNEL_ID=65b37833afe781e84afa001f
 ```
 
 ## 2. Buat template message
+
+Referensi API: [POST template create](/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_createTemplateMessage)
 
 Gunakan endpoint berikut untuk membuat template message pada channel WhatsApp API.
 
@@ -112,6 +116,8 @@ Catatan:
 
 ## 3. Cek daftar template
 
+Referensi API: [GET message template list](/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_getMessageTemplate)
+
 Setelah template dibuat, ambil daftar template dari channel tersebut.
 
 ```bash
@@ -136,6 +142,8 @@ curl -X GET "https://api.socialchat.id/partner/channel/whatsapp-official/65b3783
 
 ## 4. Cek detail satu template
 
+Referensi API: [GET message template detail](/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_getOneMessageTemplate)
+
 Untuk memastikan komponen dan placeholder template, ambil detail template berdasarkan `templateId`.
 
 ```bash
@@ -147,6 +155,8 @@ curl -X GET "https://api.socialchat.id/partner/channel/whatsapp-official/65b3783
 Pastikan template sudah siap digunakan. Pada penggunaan production, template biasanya perlu berstatus approved sebelum bisa dikirim ke penerima.
 
 ## 5. Kirim template ke penerima
+
+Referensi API: [POST /message/whatsapp-official/template](/docs/openapi/message-api/MessageController_sendWhatsAppApiMessageToPhoneNumber)
 
 Gunakan endpoint berikut untuk mengirim template WhatsApp API ke nomor penerima.
 
