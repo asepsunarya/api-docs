@@ -1,0 +1,252 @@
+---
+title: Kirim Template Message WhatsApp API
+description: Tutorial membuat, mengecek, dan mengirim template message WhatsApp API melalui Socialchat Partner API.
+---
+
+Template message WhatsApp API digunakan untuk mengirim pesan terstruktur ke penerima melalui channel **WhatsApp Official / WhatsApp API**. Tutorial ini menjelaskan alur dasar dari mengambil channel, membuat template, mengecek template, sampai mengirim template ke nomor penerima.
+
+## Prasyarat
+
+Sebelum mulai, pastikan kamu sudah memiliki:
+
+- API key Socialchat Partner API.
+- Channel WhatsApp Official / WhatsApp API yang sudah terhubung.
+- Nomor penerima dalam format internasional, misalnya `6281234567890`.
+- Template yang sudah dibuat dan disetujui sebelum dipakai untuk pengiriman production.
+
+Gunakan Base URL berikut:
+
+```txt
+https://api.socialchat.id/partner
+```
+
+Semua request membutuhkan header authorization:
+
+```http
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+## 1. Ambil channel WhatsApp API
+
+Pertama, ambil daftar channel untuk mendapatkan `_id` channel WhatsApp Official. Nilai `_id` ini akan dipakai sebagai `channelId` pada langkah berikutnya.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/channel?page=1&limit=10&channelTypes=whatsapp-official" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response ringkas:
+
+```json
+{
+  "docs": [
+    {
+      "_id": "65b37833afe781e84afa001f",
+      "name": "Socialchat WhatsApp API",
+      "channelType": "whatsapp-official",
+      "isConnected": true,
+      "label": {
+        "name": "Socialchat Team",
+        "phone": "081234567890"
+      }
+    }
+  ],
+  "totalDocs": 1,
+  "page": 1,
+  "limit": 10
+}
+```
+
+Simpan nilai berikut:
+
+```txt
+CHANNEL_ID=65b37833afe781e84afa001f
+```
+
+## 2. Buat template message
+
+Gunakan endpoint berikut untuk membuat template message pada channel WhatsApp API.
+
+```txt
+POST /channel/whatsapp-official/{id}/template/create
+```
+
+`{id}` adalah `_id` channel dari langkah sebelumnya.
+
+Contoh membuat template sederhana:
+
+```bash
+curl -X POST "https://api.socialchat.id/partner/channel/whatsapp-official/65b37833afe781e84afa001f/template/create" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "konfirmasi_pesanan",
+    "category": "UTILITY",
+    "language": "id",
+    "components": [
+      {
+        "type": "HEADER",
+        "format": "TEXT",
+        "text": "Konfirmasi Pesanan"
+      },
+      {
+        "type": "BODY",
+        "text": "Halo {{1}}, pesanan kamu dengan nomor {{2}} sudah kami terima. Total pembayaran adalah {{3}}."
+      },
+      {
+        "type": "FOOTER",
+        "text": "Terima kasih"
+      }
+    ]
+  }'
+```
+
+Catatan:
+
+- `name` sebaiknya menggunakan huruf kecil, angka, dan underscore.
+- `category` mengikuti kategori template WhatsApp, misalnya `UTILITY`, `MARKETING`, atau `AUTHENTICATION`.
+- `language` contoh umum untuk Bahasa Indonesia adalah `id`.
+- Placeholder seperti `{{1}}`, `{{2}}`, dan `{{3}}` harus diisi saat template dikirim.
+
+## 3. Cek daftar template
+
+Setelah template dibuat, ambil daftar template dari channel tersebut.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/channel/whatsapp-official/65b37833afe781e84afa001f/message-template?limit=10" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+Dari response, cari template yang dibuat. Simpan `templateId` dari template tersebut.
+
+```txt
+TEMPLATE_ID=1264704961579504
+```
+
+Jika response memiliki pagination token, gunakan `nextToken` atau `previousToken` sesuai kebutuhan:
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/channel/whatsapp-official/65b37833afe781e84afa001f/message-template?limit=10&nextToken=NEXT_TOKEN" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+## 4. Cek detail satu template
+
+Untuk memastikan komponen dan placeholder template, ambil detail template berdasarkan `templateId`.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/channel/whatsapp-official/65b37833afe781e84afa001f/message-template/1264704961579504" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+Pastikan template sudah siap digunakan. Pada penggunaan production, template biasanya perlu berstatus approved sebelum bisa dikirim ke penerima.
+
+## 5. Kirim template ke penerima
+
+Gunakan endpoint berikut untuk mengirim template WhatsApp API ke nomor penerima.
+
+```txt
+POST /message/whatsapp-official/template
+```
+
+Contoh request:
+
+```bash
+curl -X POST "https://api.socialchat.id/partner/message/whatsapp-official/template" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channelId": "65b37833afe781e84afa001f",
+    "phoneNumber": "6281234567890",
+    "templateId": "1264704961579504",
+    "payloads": [
+      {
+        "type": "header",
+        "text": "Konfirmasi Pesanan",
+        "parameters": [
+          {
+            "status": "static",
+            "type": "text",
+            "text": "Konfirmasi Pesanan",
+            "example": {
+              "title": "",
+              "value": ""
+            }
+          }
+        ]
+      },
+      {
+        "type": "body",
+        "text": "Halo Budi, pesanan kamu dengan nomor INV-001 sudah kami terima. Total pembayaran adalah Rp150.000.",
+        "parameters": [
+          {
+            "status": "static",
+            "type": "text",
+            "text": "Budi",
+            "example": {
+              "title": "nama",
+              "value": "Budi"
+            }
+          },
+          {
+            "status": "static",
+            "type": "text",
+            "text": "INV-001",
+            "example": {
+              "title": "nomor_pesanan",
+              "value": "INV-001"
+            }
+          },
+          {
+            "status": "static",
+            "type": "text",
+            "text": "Rp150.000",
+            "example": {
+              "title": "total_pembayaran",
+              "value": "Rp150.000"
+            }
+          }
+        ]
+      },
+      {
+        "type": "footer",
+        "text": "Terima kasih",
+        "parameters": [
+          {
+            "status": "static",
+            "type": "text",
+            "text": "Terima kasih",
+            "example": {
+              "title": "",
+              "value": ""
+            }
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+Jika berhasil, endpoint mengembalikan response kosong dengan status sukses.
+
+## Ringkasan alur
+
+1. Ambil channel WhatsApp API dari `GET /channel`.
+2. Simpan `_id` channel sebagai `channelId`.
+3. Buat template lewat `POST /channel/whatsapp-official/{id}/template/create`.
+4. Ambil daftar template lewat `GET /channel/whatsapp-official/{id}/message-template`.
+5. Ambil detail template jika perlu lewat `GET /channel/whatsapp-official/{id}/message-template/{templateId}`.
+6. Kirim template ke penerima lewat `POST /message/whatsapp-official/template`.
+
+## Troubleshooting
+
+- Jika channel tidak ditemukan, pastikan `channelId` memakai `_id` dari dokumen channel, bukan nomor WhatsApp.
+- Jika template tidak muncul, cek pagination `nextToken` dan status template.
+- Jika pesan tidak terkirim, pastikan nomor penerima memakai format internasional tanpa tanda `+`, misalnya `6281234567890`.
+- Jika payload tidak sesuai, cocokkan jumlah `parameters` dengan placeholder template seperti `{{1}}`, `{{2}}`, dan seterusnya.
+- Jangan menaruh API key di frontend publik. Lakukan request dari backend/server milik partner.
