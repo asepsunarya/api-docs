@@ -115,13 +115,28 @@ Rekomendasi:
 
 ## 4. Isi webhook yang diterima
 
-Payload webhook dapat berbeda sesuai jenis event dan channel. Secara umum, payload berisi data event, channel, conversation, sender/contact, dan message jika event berkaitan dengan pesan.
-
-### Contoh event pesan masuk teks
+Payload webhook mengacu pada data yang dikirim ke queue webhook Socialchat. Secara internal, event dikirim dengan format `type` dan `data`, lalu body yang diterima endpoint webhook menjadi:
 
 ```json
 {
-  "event": "incoming_message",
+  "type": "message",
+  "...data": "..."
+}
+```
+
+Artinya field `type` berada di level paling atas, lalu isi `data` digabung ke payload utama. Bentuk data dapat berbeda sesuai jenis webhook.
+
+### Type webhook yang umum
+
+- `message`: pesan masuk dari channel seperti WhatsApp API, WhatsApp Unofficial, Telegram, Instagram, Messenger, Webchat, atau Linkchat.
+- `message-status`: status atau hasil pengiriman pesan.
+- `contact`: event kontak, misalnya kontak baru atau kontak yang diproses oleh integrasi.
+
+### Contoh payload `message` teks
+
+```json
+{
+  "type": "message",
   "conversation": {
     "_id": "65b37833afe781e84afa001f",
     "senderId": "6281234567890",
@@ -160,11 +175,20 @@ Payload webhook dapat berbeda sesuai jenis event dan channel. Secara umum, paylo
 }
 ```
 
-### Contoh event pesan media
+### Contoh payload `message` media
 
 ```json
 {
-  "event": "incoming_message",
+  "type": "message",
+  "conversation": {
+    "_id": "65b37833afe781e84afa001f",
+    "senderId": "6281234567890",
+    "senderName": "Budi",
+    "channelBy": {
+      "_id": "65b37833afe781e84afa001a",
+      "channelType": "whatsapp-official"
+    }
+  },
   "message": {
     "_id": "65b37833afe781e84afa0021",
     "conversationId": "65b37833afe781e84afa001f",
@@ -189,11 +213,20 @@ Payload webhook dapat berbeda sesuai jenis event dan channel. Secara umum, paylo
 }
 ```
 
-### Contoh event pesan lokasi
+### Contoh payload `message` lokasi
 
 ```json
 {
-  "event": "incoming_message",
+  "type": "message",
+  "conversation": {
+    "_id": "65b37833afe781e84afa001f",
+    "senderId": "6281234567890",
+    "senderName": "Budi",
+    "channelBy": {
+      "_id": "65b37833afe781e84afa001a",
+      "channelType": "whatsapp-official"
+    }
+  },
   "message": {
     "_id": "65b37833afe781e84afa0022",
     "conversationId": "65b37833afe781e84afa001f",
@@ -216,27 +249,31 @@ Payload webhook dapat berbeda sesuai jenis event dan channel. Secara umum, paylo
 }
 ```
 
-### Contoh event kontak
+### Contoh payload `message-status`
+
+Payload `message-status` dikirim ketika ada status atau hasil proses pengiriman pesan. Data umumnya berisi `conversation` dan `message`.
 
 ```json
 {
-  "event": "incoming_message",
-  "message": {
-    "_id": "65b37833afe781e84afa0023",
-    "conversationId": "65b37833afe781e84afa001f",
-    "messageId": "wamid.HBgMNjI4MTIzNDU2Nzg5MA-contact",
+  "type": "message-status",
+  "conversation": {
+    "_id": "65b37833afe781e84afa001f",
     "senderId": "6281234567890",
-    "text": "",
-    "type": "contact",
-    "statusRead": "pending",
-    "sendAt": "2026-06-25T09:15:00.000Z",
-    "isForward": false,
-    "contact": {
-      "name": "Budi Santoso",
-      "picture": "https://cdn.example.com/contact.jpg",
-      "number": "6281234567890",
-      "direct": "wa.me/6281234567890"
-    },
+    "senderName": "Budi",
+    "channelBy": {
+      "_id": "65b37833afe781e84afa001a",
+      "channelType": "whatsapp-official"
+    }
+  },
+  "message": {
+    "_id": "65b37833afe781e84afa0024",
+    "conversationId": "65b37833afe781e84afa001f",
+    "messageId": "wamid.HBgMNjI4MTIzNDU2Nzg5MA-status",
+    "senderId": "agent-id",
+    "text": "Halo Budi, ada yang bisa kami bantu?",
+    "type": "text",
+    "statusRead": "read",
+    "sendAt": "2026-06-25T09:20:00.000Z",
     "channelBy": {
       "_id": "65b37833afe781e84afa001a",
       "channelType": "whatsapp-official"
@@ -245,9 +282,40 @@ Payload webhook dapat berbeda sesuai jenis event dan channel. Secara umum, paylo
 }
 ```
 
+### Contoh payload `contact`
+
+Payload `contact` dapat berisi `contactId` atau detail kontak, tergantung sumber trigger webhook.
+
+```json
+{
+  "type": "contact",
+  "contactId": "65b37833afe781e84afa0030"
+}
+```
+
+Contoh jika data kontak lengkap dikirim dari trigger integrasi:
+
+```json
+{
+  "type": "contact",
+  "name": "Budi",
+  "lastname": "Santoso",
+  "nickname": "Budi",
+  "email": "budi@example.com",
+  "phone": "6281234567890",
+  "picture": "https://cdn.example.com/contact.jpg",
+  "labels": "Prospect, VIP",
+  "channel": {
+    "name": "WhatsApp Sales",
+    "type": "whatsapp-official"
+  },
+  "createdBy": "agent@example.com"
+}
+```
+
 ## Field penting pada payload
 
-- `event`: jenis event yang dikirim oleh Socialchat.
+- `type`: jenis webhook yang diterima, misalnya `message`, `message-status`, atau `contact`.
 - `conversation._id`: ID percakapan di Socialchat.
 - `conversation.senderId`: ID atau nomor pengirim.
 - `conversation.senderName`: nama kontak/pengirim.
