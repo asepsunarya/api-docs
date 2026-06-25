@@ -1,0 +1,59 @@
+---
+title: Payload Template Marketing - Catalog
+description: Contoh payload create template kategori Marketing dengan tombol Catalog untuk WhatsApp API.
+---
+
+Gunakan payload ini untuk membuat template **Marketing Catalog**, yaitu template marketing yang mengarahkan penerima melihat katalog produk.
+
+Referensi API: [POST template create](/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_createTemplateMessage)
+
+```txt
+POST /channel/whatsapp-official/{id}/template/create
+```
+
+## Payload create template
+
+```json
+{
+  "name": "lihat_katalog_produk",
+  "category": "MARKETING",
+  "language": "id",
+  "components": [
+    { "type": "BODY", "text": "Halo {{1}}, katalog produk terbaru kami sudah tersedia. Silakan lihat pilihan produk yang cocok untuk kamu." },
+    { "type": "FOOTER", "text": "Socialchat Store" },
+    {
+      "type": "BUTTONS",
+      "buttons": [{ "type": "CATALOG", "text": "Lihat Katalog" }]
+    }
+  ]
+}
+```
+
+## Contoh payload kirim
+
+Referensi API: [POST send template](/docs/openapi/message-api/MessageController_sendWhatsAppApiMessageToPhoneNumber)
+
+```json
+{
+  "channelId": "65b37833afe781e84afa001f",
+  "phoneNumber": "6281234567890",
+  "templateId": "1264704961579504",
+  "payloads": [
+    {
+      "type": "body",
+      "text": "Halo Budi, katalog produk terbaru kami sudah tersedia. Silakan lihat pilihan produk yang cocok untuk kamu.",
+      "parameters": [{ "status": "static", "type": "text", "text": "Budi", "example": { "title": "nama", "value": "Budi" } }]
+    },
+    {
+      "type": "footer",
+      "text": "Socialchat Store",
+      "parameters": [{ "status": "static", "type": "text", "text": "Socialchat Store", "example": { "title": "", "value": "" } }]
+    }
+  ]
+}
+```
+
+## Catatan
+
+- Channel WhatsApp API harus sudah terhubung dengan catalog/commerce setup yang valid.
+- Tombol `CATALOG` bergantung pada dukungan dan validasi WhatsApp/Meta pada akun terkait.

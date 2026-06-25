@@ -7,6 +7,12 @@
     "---API Reference---",
     "openapi",
     "---Tutorial---",
-    "kirim-template-message-whatsapp-api"
+    "kirim-template-message-whatsapp-api",
+    "payload-template-marketing-default",
+    "payload-template-marketing-catalog",
+    "payload-template-marketing-calling-permissions-request",
+    "payload-template-utility-default",
+    "payload-template-utility-calling-permissions-request",
+    "payload-template-authentication-default"
   ]
 }

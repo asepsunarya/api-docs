@@ -1,0 +1,53 @@
+---
+title: Payload Template Marketing - Calling Permissions Request
+description: Contoh payload create template kategori Marketing untuk meminta izin panggilan WhatsApp.
+---
+
+Gunakan payload ini untuk template **Marketing Calling Permissions Request**, yaitu pesan yang meminta izin dari pengguna agar bisnis dapat melakukan panggilan WhatsApp untuk konteks marketing.
+
+Referensi API: [POST template create](/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_createTemplateMessage)
+
+```txt
+POST /channel/whatsapp-official/{id}/template/create
+```
+
+## Payload create template
+
+```json
+{
+  "name": "izin_panggilan_promo",
+  "category": "MARKETING",
+  "language": "id",
+  "components": [
+    { "type": "BODY", "text": "Halo {{1}}, kami ingin menghubungi kamu melalui panggilan WhatsApp untuk menjelaskan penawaran terbaru dari kami." },
+    {
+      "type": "BUTTONS",
+      "buttons": [{ "type": "CALL_PERMISSION_REQUEST", "text": "Izinkan Panggilan" }]
+    }
+  ]
+}
+```
+
+## Contoh payload kirim
+
+Referensi API: [POST send template](/docs/openapi/message-api/MessageController_sendWhatsAppApiMessageToPhoneNumber)
+
+```json
+{
+  "channelId": "65b37833afe781e84afa001f",
+  "phoneNumber": "6281234567890",
+  "templateId": "1264704961579504",
+  "payloads": [
+    {
+      "type": "body",
+      "text": "Halo Budi, kami ingin menghubungi kamu melalui panggilan WhatsApp untuk menjelaskan penawaran terbaru dari kami.",
+      "parameters": [{ "status": "static", "type": "text", "text": "Budi", "example": { "title": "nama", "value": "Budi" } }]
+    }
+  ]
+}
+```
+
+## Catatan
+
+- Gunakan kategori Marketing jika konteks panggilan berhubungan dengan promosi, penawaran, atau campaign.
+- Tombol `CALL_PERMISSION_REQUEST` membutuhkan dukungan fitur calling permission pada akun WhatsApp API terkait.

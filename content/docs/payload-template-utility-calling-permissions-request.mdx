@@ -1,0 +1,56 @@
+---
+title: Payload Template Utility - Calling Permissions Request
+description: Contoh payload create template kategori Utility untuk meminta izin panggilan WhatsApp.
+---
+
+Gunakan payload ini untuk template **Utility Calling Permissions Request**, misalnya meminta izin panggilan terkait transaksi, dukungan pelanggan, jadwal layanan, atau follow-up yang diminta user.
+
+Referensi API: [POST template create](/docs/openapi/channel-whatsapp-official-api/WhatsAppOfficialController_createTemplateMessage)
+
+```txt
+POST /channel/whatsapp-official/{id}/template/create
+```
+
+## Payload create template
+
+```json
+{
+  "name": "izin_panggilan_layanan",
+  "category": "UTILITY",
+  "language": "id",
+  "components": [
+    { "type": "BODY", "text": "Halo {{1}}, kami perlu menghubungi kamu melalui panggilan WhatsApp untuk membantu proses layanan dengan nomor tiket {{2}}." },
+    {
+      "type": "BUTTONS",
+      "buttons": [{ "type": "CALL_PERMISSION_REQUEST", "text": "Izinkan Panggilan" }]
+    }
+  ]
+}
+```
+
+## Contoh payload kirim
+
+Referensi API: [POST send template](/docs/openapi/message-api/MessageController_sendWhatsAppApiMessageToPhoneNumber)
+
+```json
+{
+  "channelId": "65b37833afe781e84afa001f",
+  "phoneNumber": "6281234567890",
+  "templateId": "1264704961579504",
+  "payloads": [
+    {
+      "type": "body",
+      "text": "Halo Budi, kami perlu menghubungi kamu melalui panggilan WhatsApp untuk membantu proses layanan dengan nomor tiket TKT-1001.",
+      "parameters": [
+        { "status": "static", "type": "text", "text": "Budi", "example": { "title": "nama", "value": "Budi" } },
+        { "status": "static", "type": "text", "text": "TKT-1001", "example": { "title": "nomor_tiket", "value": "TKT-1001" } }
+      ]
+    }
+  ]
+}
+```
+
+## Catatan
+
+- Gunakan kategori Utility jika izin panggilan terkait transaksi, layanan, atau request user.
+- Tombol `CALL_PERMISSION_REQUEST` membutuhkan dukungan fitur calling permission pada akun WhatsApp API terkait.
