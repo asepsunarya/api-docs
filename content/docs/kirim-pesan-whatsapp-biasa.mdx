@@ -1,0 +1,199 @@
+---
+title: Kirim Pesan WhatsApp Biasa
+description: Tutorial mengirim pesan teks, media, dan reply ke conversation WhatsApp melalui Socialchat Partner API.
+---
+
+Pesan WhatsApp biasa adalah pesan teks, media, atau reply yang dikirim ke dalam conversation yang sudah ada. Tutorial ini menjelaskan cara mengirim pesan melalui endpoint `POST /message/{id}`, di mana `{id}` pada path adalah `_id` dari conversation.
+
+Bedanya dengan template message: pesan biasa tidak memerlukan template yang disetujui, tetapi conversation target harus sudah ada. Jika belum ada conversation, kamu bisa memulai conversation baru dengan endpoint init contact atau mengirim ke nomor baru via `POST /message/whatsapp`.
+
+## Prasyarat
+
+Sebelum mulai, pastikan kamu sudah memiliki:
+
+- API key Socialchat Partner API.
+- Channel WhatsApp yang sudah terhubung.
+- `conversationId` dari conversation yang sudah ada. Jika belum punya, ambil dari `GET /conversation`.
+
+Gunakan Base URL berikut:
+
+```txt
+https://api.socialchat.id/partner
+```
+
+Semua request membutuhkan header authorization:
+
+```http
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+## 1. Ambil conversation
+
+Referensi API: [GET /conversation](/docs/openapi/conversation-controller/ConversationController_getConversation)
+
+Untuk mengirim pesan, kamu perlu `conversationId`. Ambil daftar conversation terlebih dahulu.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/conversation?page=1&limit=10&fromDate=2026-06-01T00:00:00.000Z&toDate=2026-06-25T23:59:59.000Z" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response ringkas:
+
+```json
+{
+  "docs": [
+    {
+      "_id": "65b37833afe781e84afa001f",
+      "senderId": "6281234567890",
+      "senderName": "Budi",
+      "channelBy": {
+        "_id": "65b37833afe781e84afa001a",
+        "channelType": "whatsapp-official"
+      }
+    }
+  ],
+  "totalDocs": 1,
+  "page": 1,
+  "limit": 10
+}
+```
+
+Simpan nilai `_id` conversation:
+
+```txt
+CONVERSATION_ID=65b37833afe781e84afa001f
+```
+
+## 2. Kirim pesan teks
+
+Referensi API: [`POST /message/{id}`](/docs/openapi/message-api/MessageController_sendMessage)
+
+Kirim pesan teks ke conversation yang sudah ada dengan body minimal berisi `text`.
+
+```bash
+curl -X POST "https://api.socialchat.id/partner/message/65b37833afe781e84afa001f" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Halo Budi, ada yang bisa kami bantu?"
+  }'
+```
+
+Contoh response sukses:
+
+```json
+{
+  "_id": "65b37833afe781e84afa001f",
+  "messageId": "wamid.HBgMNjI4MTIzNDU2Nzg5MA==",
+  "senderId": "6281234567890",
+  "text": "Halo Budi, ada yang bisa kami bantu?",
+  "type": "text",
+  "statusRead": "pending",
+  "sendBy": "owner",
+  "sendAt": "2026-06-25T09:00:00.000Z",
+  "createdAt": "2026-06-25T09:00:00.000Z",
+  "updatedAt": "2026-06-25T09:00:00.000Z"
+}
+```
+
+## 3. Kirim pesan media
+
+Untuk mengirim gambar, video, audio, atau dokumen, tambahkan field `media` pada body.
+
+```bash
+curl -X POST "https://api.socialchat.id/partner/message/65b37833afe781e84afa001f" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Berikut bukti transfernya ya.",
+    "media": {
+      "url": "https://manypage-s3-production.my.id/chats/uploads/bukti-transfer.jpg",
+      "type": "image",
+      "mimetype": "image/jpeg",
+      "name": "bukti-transfer.jpg",
+      "thumbnail": "base64-data"
+    }
+  }'
+```
+
+Field `media`:
+
+- `url`: URL file yang sudah bisa diakses publik.
+- `type`: tipe media, misalnya `image`, `video`, `audio`, `document`.
+- `mimetype`: MIME type file, misalnya `image/jpeg`, `video/mp4`, `audio/mp3`, `application/pdf`.
+- `name`: nama file.
+- `thumbnail`: thumbnail base64 untuk image/video (opsional tergantung channel).
+
+Contoh response untuk media message:
+
+```json
+{
+  "_id": "65b37833afe781e84afa001f",
+  "messageId": "wamid.HBgMNjI4MTIzNDU2Nzg5MA==",
+  "text": "Berikut bukti transfernya ya.",
+  "type": "media",
+  "media": {
+    "url": "https://manypage-s3-production.my.id/chats/uploads/bukti-transfer.jpg",
+    "type": "image",
+    "mimetype": "image/jpeg",
+    "thumbnail": "base64-data"
+  },
+  "statusRead": "pending",
+  "sendBy": "owner",
+  "sendAt": "2026-06-25T09:00:00.000Z"
+}
+```
+
+## 4. Kirim pesan reply
+
+Jika ingin membalas pesan tertentu, tambahkan `replyMessageId` dengan nilai `_id` dari pesan yang ingin dibalas.
+
+```bash
+curl -X POST "https://api.socialchat.id/partner/message/65b37833afe781e84afa001f" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Oke, kami proses sekarang ya.",
+    "replyMessageId": "65b37833afe781e84afa0020"
+  }'
+```
+
+`replyMessageId` bisa didapatkan dari `GET /message/{conversationId}` saat mengambil riwayat pesan.
+
+## 5. Kirim pesan ke nomor baru tanpa conversation
+
+Referensi API: [POST /message/whatsapp](/docs/openapi/message-api/MessageController_sendWhatsAppMessage)
+
+Jika belum ada conversation, gunakan endpoint ini untuk mengirim pesan teks langsung ke nomor tujuan.
+
+```bash
+curl -X POST "https://api.socialchat.id/partner/message/whatsapp" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channelId": "65b37833afe781e84afa001a",
+    "phoneNumber": "6281234567890",
+    "text": "Halo, ini pesan dari Socialchat Partner API."
+  }'
+```
+
+Endpoint ini cocok untuk mengirim notifikasi atau pesan pertama ke nomor yang belum pernah chat.
+
+## Ringkasan alur
+
+1. Ambil `conversationId` dari `GET /conversation`.
+2. Kirim pesan teks ke `POST /message/{id}` dengan `id` sebagai `conversationId` dan body `{ "text": "..." }`.
+3. Untuk media, tambahkan field `media` dengan URL, type, dan mimetype.
+4. Untuk reply, tambahkan `replyMessageId` dari pesan yang ingin dibalas.
+5. Jika belum ada conversation, gunakan `POST /message/whatsapp` dengan `channelId` dan `phoneNumber`.
+
+## Troubleshooting
+
+- Jika conversation tidak ditemukan, pastikan `id` pada path adalah `_id` conversation, bukan `senderId` atau nomor telepon.
+- Jika pesan tidak terkirim, cek channel masih terhubung dan conversation tidak dalam status `completed` atau `blocked`.
+- Jika media tidak muncul, pastikan URL file bisa diakses publik dan MIME type sesuai dengan tipe file.
+- Jika reply tidak menunjukkan pesan yang dibalas, cek `replyMessageId` adalah `_id` dari message yang valid dalam conversation yang sama.
+- Jangan menaruh API key di frontend publik. Lakukan request dari backend/server partner.
