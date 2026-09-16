@@ -131,6 +131,7 @@ Artinya field `type` berada di level paling atas, lalu isi `data` digabung ke pa
 - `message`: pesan masuk dari channel seperti WhatsApp API, WhatsApp Unofficial, Telegram, Instagram, Messenger, Webchat, atau Linkchat.
 - `message-status`: status atau hasil pengiriman pesan.
 - `contact`: event kontak, misalnya kontak baru atau kontak yang diproses oleh integrasi.
+- `submit-form`: hasil submit form (misalnya form Webchat/Linkchat), berisi data `name`, `phone`, dan `email`.
 
 ### Contoh payload `message` teks
 
@@ -313,9 +314,28 @@ Contoh jika data kontak lengkap dikirim dari trigger integrasi:
 }
 ```
 
+### Contoh payload `submit-form`
+
+Payload `submit-form` dikirim ketika pengunjung mengisi dan mengirim form (misalnya form Webchat/Linkchat).
+
+```json
+{
+  "type": "submit-form",
+  "channelId": "65b37833afe781e84afa001a",
+  "conversationId": "65b37833afe781e84afa001f",
+  "payload": {
+    "name": "Andi",
+    "phone": "08736278423",
+    "email": "andy@gmail.com"
+  }
+}
+```
+
 ## Field penting pada payload
 
-- `type`: jenis webhook yang diterima, misalnya `message`, `message-status`, atau `contact`.
+- `type`: jenis webhook yang diterima, misalnya `message`, `message-status`, `contact`, atau `submit-form`.
+- `channelId`: ID channel Socialchat asal form disubmit (hanya pada `submit-form`).
+- `conversationId`: ID percakapan terkait submit form (hanya pada `submit-form`).
 - `conversation._id`: ID percakapan di Socialchat.
 - `conversation.senderId`: ID atau nomor pengirim.
 - `conversation.senderName`: nama kontak/pengirim.
