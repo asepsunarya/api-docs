@@ -1,0 +1,312 @@
+---
+title: Integrasi Pipelead dengan Sistem Anda
+description: Tutorial menggeser stage pipelead otomatis dari sistem eksternal dan mengirim notifikasi ke konsumen via Socialchat Partner API.
+---
+
+Tutorial ini menjawab kebutuhan umum: kamu punya **sistem monitoring sendiri**, dan ingin setiap order yang selesai otomatis:
+
+1. Menggeser kartu pipelead ke stage `Ready` / `barang siap diambil`.
+2. Mengirim notifikasi otomatis ke konsumen.
+
+Contoh kasus: pipeline percetakan dengan stage `Pesanan sudah dicetak` → `Pesanan dalam proses cetak` → `Ready` → `sudah diambil`. Saat sistem produksi menandai orderan selesai, kartu lead pindah sendiri ke `Ready` dan konsumen menerima pesan WhatsApp.
+
+## Prasyarat
+
+Sebelum mulai, pastikan kamu sudah memiliki:
+
+- API key Socialchat Partner API.
+- Pipeline pipelead yang sudah dibuat beserta stage-nya (misalnya pipeline `Pipelead default`).
+- Channel WhatsApp (atau channel lain) yang sudah terhubung untuk notifikasi.
+- Sistem produksi yang bisa memanggil HTTP request (webhook keluar / job / cron) saat status order berubah.
+- `conversationId` dari setiap order — ini kunci penghubung antara order di sistem kamu dan lead di Socialchat (dijelaskan di langkah 2).
+
+Gunakan Base URL berikut:
+
+```txt
+https://api.socialchat.id/partner
+```
+
+Semua request membutuhkan header authorization:
+
+```http
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+## Gambaran alur
+
+```txt
+Sistem produksi (order selesai)
+  → cari lead dari conversationId (GET /chat-lead/conversation/{id})
+  → geser stage ke Ready (PUT /chat-lead/{id}/stage)
+  → kirim notifikasi ke konsumen (POST /message/{conversationId})
+```
+
+## 1. Petakan pipeline dan stage ke ID
+
+Referensi API: [GET /chat-pipe](/docs/openapi/chat-pipe-api/ChatPipeController_getChatPipe)
+
+Nama stage yang tampil di dashboard (misalnya `Ready`) bukan yang dikirim ke API — yang dikirim adalah `_id` stage. Ambil daftar pipeline satu kali lalu simpan pemetaannya.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/chat-pipe?page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response ringkas:
+
+```json
+{
+  "docs": [
+    {
+      "_id": "60d5ecb8b392d7001f3e1234",
+      "name": "Pipelead default",
+      "stages": [
+        { "_id": "60d5ecb8b392d7001f3e5601", "name": "Pesanan sudah dicetak", "position": 0 },
+        { "_id": "60d5ecb8b392d7001f3e5602", "name": "Pesanan dalam proses cetak", "position": 1 },
+        { "_id": "60d5ecb8b392d7001f3e5603", "name": "Ready", "position": 2 },
+        { "_id": "60d5ecb8b392d7001f3e5604", "name": "sudah diambil", "position": 3 }
+      ]
+    }
+  ]
+}
+```
+
+Buat tabel pemetaan di sistem kamu (cukup sekali, update hanya jika stage diubah):
+
+```txt
+CHAT_PIPE_ID=60d5ecb8b392d7001f3e1234
+STAGE_PROSES=60d5ecb8b392d7001f3e5602   # Pesanan dalam proses cetak
+STAGE_READY=60d5ecb8b392d7001f3e5603    # Ready / barang siap diambil
+STAGE_DIAMBIL=60d5ecb8b392d7001f3e5604  # sudah diambil
+```
+
+> Catatan: langkah ini **hanya menggeser stage**, bukan menandai `won`. Status `won` + `totalWon` dipakai nanti di stage akhir (`sudah diambil`) lewat `PUT /chat-lead/{id}/status`.
+
+## 2. Simpan mapping order produksi ke conversation
+
+Semua endpoint tulis butuh ID milik Socialchat (`leadId`, `conversationId`), bukan ID order dari sistem kamu. Jadi saat order masuk / lead dibuat, simpan tabel relasi di database sistem kamu:
+
+```txt
+orderId (sistem kamu) ↔ conversationId ↔ leadId
+```
+
+Contoh: order `ORD-1024` berasal dari chat konsumen, maka simpan `ORD-1024 → conversationId 65b37833afe781e84afa001f`.
+
+Jangan memakai nomor HP atau nominal order sebagai kunci — tidak unik dan rapuh jika konsumen ganti nomor atau punya banyak order.
+
+## 3. Saat produksi selesai: cari lead dari conversation
+
+Referensi API: [GET lead by conversation](/docs/openapi/chat-lead-controller/ChatLeadController_getLeadByConversation)
+
+Ketika sistem produksi mengubah status order menjadi selesai, panggil endpoint ini untuk mendapatkan `_id` lead sekaligus verifikasi bahwa conversation memang terdaftar di pipelead.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/chat-lead/conversation/65b37833afe781e84afa001f" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response:
+
+```json
+{
+  "_id": "60d5ecb8b392d7001f3e9999",
+  "status": "open",
+  "createdAt": "2026-06-15T08:07:25.195Z",
+  "updatedAt": "2026-06-15T08:07:25.195Z"
+}
+```
+
+Simpan `_id` sebagai `LEAD_ID` untuk langkah berikutnya. Jika endpoint mengembalikan 404 / kosong, berarti conversation belum masuk pipelead — buat dulu via `POST /chat-lead` dengan `chatPipeId`, `chatStageId`, `conversationId`, dan `totalWon`, atau tangani sebagai error yang dikirim ke antrean manual.
+
+## 4. Geser kartu lead ke stage Ready
+
+Referensi API: [`PUT /chat-lead/{id}/stage`](/docs/openapi/chat-lead-controller/ChatLeadController_updateStageLead)
+
+Ini endpoint inti "pipelinenya geser sendiri". `{id}` pada path adalah `_id` lead dari langkah 3, dan `chatStageId` pada body adalah ID stage `Ready` dari langkah 1.
+
+```bash
+curl -X PUT "https://api.socialchat.id/partner/chat-lead/60d5ecb8b392d7001f3e9999/stage" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chatPipeId": "60d5ecb8b392d7001f3e1234",
+    "chatStageId": "60d5ecb8b392d7001f3e5603"
+  }'
+```
+
+Field body:
+
+- `chatPipeId` (wajib): ID pipeline dari langkah 1.
+- `chatStageId` (wajib): ID stage tujuan (`Ready`).
+- `position` (opsional): posisi kartu di dalam stage, default `0`.
+
+Setelah request ini sukses, kartu di dashboard pindah ke kolom `Ready` tanpa perlu digeser manual.
+
+Opsional, tambahkan catatan audit agar riwayat lead jelas:
+
+Referensi API: [POST /chat-lead/note](/docs/openapi/chat-lead-controller/ChatLeadController_addLeadNote)
+
+```bash
+curl -X POST "https://api.socialchat.id/partner/chat-lead/note" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "note": "Order ORD-1024 selesai diproduksi, lead dipindah ke Ready."
+  }'
+```
+
+> Cek referensi API untuk kaitan note dengan lead di versi backend kamu sebelum dipakai di production.
+
+## 5. Kirim notifikasi otomatis ke konsumen
+
+Referensi API: [`POST /message/{id}`](/docs/openapi/message-api/MessageController_sendMessage)
+
+`{id}` pada path adalah `conversationId` (bukan leadId). Kirim pesan teks yang menyebut nomor order agar konsumen paham.
+
+```bash
+curl -X POST "https://api.socialchat.id/partner/message/65b37833afe781e84afa001f" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Halo, orderan ORD-1024 sudah selesai diproduksi dan READY. Silakan diambil di toko ya. Terima kasih."
+  }'
+```
+
+### Jika memakai WhatsApp Official dan pesan gagal
+
+Pesan biasa butuh conversation dalam window 24 jam. Produksi bisa selesai berhari-hari setelah chat terakhir, sehingga request di atas dapat ditolak. Fallback-nya adalah template message yang sudah disetujui.
+
+Referensi API: [`POST /message/{id}/template`](/docs/openapi/message-api/MessageController_sendTemplateMessage)
+
+```bash
+curl -X POST "https://api.socialchat.id/partner/message/65b37833afe781e84afa001f/template" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "templateId": "1264704961579504",
+    "payloads": []
+  }'
+```
+
+Pola yang disarankan di kode: coba pesan biasa dulu, jika gagal karena window kedaluwarsa, kirim ulang via template. Detail membuat dan memilih template ada di tutorial [Kirim Template Message WhatsApp API](/docs/kirim-template-message-whatsapp-api).
+
+## 6. Contoh glue-code di sistem produksi
+
+Contoh endpoint di sistem produksi (Express) yang dipanggil saat order selesai. Prosesnya idempotent: jika event yang sama datang dua kali, lead tidak digeser dua kali secara merusak karena stage tujuan sama.
+
+```js
+const express = require('express')
+const app = express()
+
+app.use(express.json())
+
+// Tabel mapping langkah 1, simpan sebagai config/env.
+const CHAT_PIPE_ID = process.env.CHAT_PIPE_ID
+const STAGE_READY = process.env.STAGE_READY_ID
+const API_KEY = process.env.SOCIALCHAT_API_KEY
+const BASE = 'https://api.socialchat.id/partner'
+
+async function api(path, options = {}) {
+  const res = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  })
+  if (!res.ok) throw new Error(`${path} -> ${res.status}`)
+  return res.json()
+}
+
+// Dipanggil sistem produksi saat order selesai, mis. POST /hooks/production-done
+// body: { "orderId": "ORD-1024" }
+app.post('/hooks/production-done', async (req, res) => {
+  const { orderId } = req.body
+
+  // 1. Ambil conversationId dari tabel relasi sistem kamu (langkah 2).
+  const conversationId = await db.orders.getConversationId(orderId)
+  if (!conversationId) return res.status(404).json({ error: 'order belum terhubung ke conversation' })
+
+  // 2. Cari lead (langkah 3).
+  const lead = await api(`/chat-lead/conversation/${conversationId}`)
+
+  // 3. Geser ke Ready (langkah 4). Idempotent: aman dipanggil ulang.
+  await api(`/chat-lead/${lead._id}/stage`, {
+    method: 'PUT',
+    body: JSON.stringify({ chatPipeId: CHAT_PIPE_ID, chatStageId: STAGE_READY }),
+  })
+
+  // 4. Notifikasi konsumen (langkah 5), fallback ke template jika window expired.
+  try {
+    await api(`/message/${conversationId}`, {
+      method: 'POST',
+      body: JSON.stringify({
+        text: `Halo, orderan ${orderId} sudah selesai diproduksi dan READY. Silakan diambil di toko ya. Terima kasih.`,
+      }),
+    })
+  } catch (err) {
+    await api(`/message/${conversationId}/template`, {
+      method: 'POST',
+      body: JSON.stringify({ templateId: process.env.READY_TEMPLATE_ID, payloads: [] }),
+    })
+  }
+
+  return res.status(200).json({ ok: true })
+})
+
+app.listen(3000, () => console.log('Production hook running'))
+```
+
+Rekomendasi:
+
+- Balas `200` ke pemanggil internal hanya setelah semua langkah sukses, atau simpan ke queue lalu proses async jika volume tinggi.
+- Buat idempotent berdasarkan `orderId` (tandai order sudah diproses) agar retry tidak mengirim notif ganda.
+- Simpan raw response untuk debugging.
+
+## 7. Menandai won saat barang sudah diambil
+
+Ketika konsumen mengambil barang (kasir menekan selesai / scan), tandai lead selesai agar report benar.
+
+Referensi API: [`PUT /chat-lead/{id}/status`](/docs/openapi/chat-lead-controller/ChatLeadController_updateStatusLead)
+
+```bash
+curl -X PUT "https://api.socialchat.id/partner/chat-lead/60d5ecb8b392d7001f3e9999/status" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chatPipeId": "60d5ecb8b392d7001f3e1234",
+    "chatStageId": "60d5ecb8b392d7001f3e5604",
+    "status": "won",
+    "note": "Order ORD-1024 sudah diambil konsumen.",
+    "totalWon": 150000
+  }'
+```
+
+Field penting:
+
+- `status` (wajib): `won` untuk order selesai/diambil, `lost` untuk batal.
+- `chatStageId`: ID stage akhir (`sudah diambil`).
+- `totalWon`: nominal order, dipakai di report summary.
+- `note`: keterangan audit.
+
+## Ringkasan alur
+
+1. Petakan stage sekali via `GET /chat-pipe`, simpan `chatPipeId` + tiap `chatStageId` (`Ready`, `sudah diambil`, dst).
+2. Simpan relasi `orderId ↔ conversationId ↔ leadId` di sistem produksi setiap order masuk.
+3. Saat produksi selesai, ambil lead via `GET /chat-lead/conversation/{conversationId}`.
+4. Geser kartu via `PUT /chat-lead/{id}/stage` ke stage `Ready` (opsional: `POST /chat-lead/note`).
+5. Notifikasi via `POST /message/{conversationId}`, fallback `POST /message/{id}/template` untuk WhatsApp Official di luar window 24 jam.
+6. Saat barang diambil, tutup via `PUT /chat-lead/{id}/status` dengan `status: won`.
+
+## Troubleshooting
+
+- Jika lead tidak ditemukan dari conversation, pastikan conversation sudah masuk pipelead; jika belum, buat via `POST /chat-lead` atau tangani manual.
+- Jika geser stage gagal, pastikan `chatPipeId` dan `chatStageId` berasal dari pipeline yang sama (hasil langkah 1).
+- Jika notifikasi 403/gagal di WhatsApp Official, kemungkinan window 24 jam kedaluwarsa — gunakan template message.
+- Jika notifikasi terkirim dua kali, buat endpoint hook idempotent berdasarkan `orderId` dan tandai order yang sudah diproses.
+- Jika report tidak sesuai, pastikan `totalWon` hanya diisi saat status `won` di stage akhir, bukan saat pindah ke `Ready`.
+- Jangan menaruh API key di frontend publik. Semua request di tutorial ini dilakukan dari backend/server partner.
