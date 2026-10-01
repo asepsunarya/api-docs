@@ -1,0 +1,154 @@
+---
+title: Generate Link untuk Linkchat dengan Query String conversationId
+description: Tutorial menjaga session customer LinkChat tetap sama saat pindah browser atau device dengan query string conversationId.
+---
+
+Secara default LinkChat mengenali customer dari session di browser/device yang dipakai (cookie/local storage). Artinya jika customer yang sama membuka LinkChat dari browser atau device berbeda, biasanya akan tercatat sebagai conversation/session baru yang terpisah.
+
+Untuk menjaga session customer tidak berubah saat pindah browser atau device, kamu bisa membuka LinkChat dengan query string `conversationId` yang diambil dari API conversations.
+
+## Prasyarat
+
+- API key Socialchat Partner API.
+- Channel LinkChat yang sudah ada conversation-nya.
+- `conversationId` (nilai `_id` dari conversation) yang didapat dari API.
+
+Gunakan Base URL berikut:
+
+```txt
+https://api.socialchat.id/partner
+```
+
+Semua request membutuhkan header authorization:
+
+```http
+Authorization: Bearer ***
+Content-Type: application/json
+```
+
+## 1. Ambil conversationId dari API conversations
+
+Referensi API: [GET /conversation](/docs/openapi/conversation-controller/ConversationController_getConversation)
+
+Gunakan endpoint ini untuk mengambil daftar conversation, lalu simpan `_id` sebagai `conversationId`. Filter berdasarkan channel LinkChat agar hasilnya spesifik.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/conversation?page=1&limit=10&fromDate=2026-06-01T00:00:00.000Z&toDate=2026-06-25T23:59:59.000Z&channelTypes=linkchat" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response ringkas:
+
+```json
+{
+  "docs": [
+    {
+      "_id": "65b37833afe781e84afa001f",
+      "senderId": "6281234567890",
+      "senderName": "Budi",
+      "channelBy": {
+        "_id": "65b37833afe781e84afa001a",
+        "channelType": "linkchat"
+      },
+      "lastMessage": {
+        "text": "Halo, saya mau tanya produk",
+        "sendBy": "sender",
+        "sendAt": "2026-06-25T09:00:00.000Z"
+      }
+    }
+  ],
+  "totalDocs": 1,
+  "page": 1
+}
+```
+
+Simpan nilainya:
+
+```txt
+CONVERSATION_ID=65b37833afe781e84afa001f
+```
+
+> Tips: kamu juga bisa mendapatkan `conversationId` dari webhook (`message.conversationId`), dari detail conversation, atau dari riwayat pesan. Lihat tutorial [Mengambil Percakapan dan Pesan](./mengambil-percakapan-dan-pesan).
+
+## 2. Susun URL LinkChat dengan conversationId
+
+Tempelkan `conversationId` sebagai query string `?conversationId=` di belakang URL LinkChat. Ada dua format URL LinkChat yang didukung:
+
+### Format 1: slug public (linkchat.id)
+
+```txt
+https://linkchat.id/manypage?conversationId=123
+```
+
+Pola umumnya:
+
+```txt
+https://linkchat.id/{slug}?conversationId={CONVERSATION_ID}
+```
+
+Contoh nyata dengan ID conversation:
+
+```txt
+https://linkchat.id/manypage?conversationId=65b37833afe781e84afa001f
+```
+
+### Format 2: URL app dengan channel ID (app.socialchat.id)
+
+```txt
+https://app.socialchat.id/linkchat/ea4118c84164f00dff429107333fe0154d?conversationId=123
+```
+
+Pola umumnya:
+
+```txt
+https://app.socialchat.id/linkchat/{channelId}?conversationId={CONVERSATION_ID}
+```
+
+Contoh nyata dengan ID conversation:
+
+```txt
+https://app.socialchat.id/linkchat/ea4118c84164f00dff429107333fe0154d?conversationId=65b37833afe781e84afa001f
+```
+
+Buka URL tersebut di browser/device lain — chat yang terbuka akan melanjutkan conversation yang sama, bukan membuat session baru.
+
+## 3. Contoh implementasi di backend
+
+Jangan menaruh API key di frontend publik. Ambil `conversationId` dari backend/server, lalu generate URL LinkChat untuk dikirim ke customer (misalnya via tombol di dashboard, email, atau halaman member area).
+
+```javascript
+const CONVERSATION_ID = "65b37833afe781e84afa001f";
+
+// Format slug
+const urlSlug = `https://linkchat.id/manypage?conversationId=${CONVERSATION_ID}`;
+
+// Format app + channelId
+const channelId = "ea4118c84164f00dff429107333fe0154d";
+const urlApp = `https://app.socialchat.id/linkchat/${channelId}?conversationId=${CONVERSATION_ID}`;
+
+console.log(urlSlug);
+console.log(urlApp);
+```
+
+Jika URL kamu sudah punya query string lain, gunakan `&` untuk menambahkan `conversationId`. Contoh:
+
+```txt
+https://linkchat.id/manypage?source=email&conversationId=65b37833afe781e84afa001f
+```
+
+Selalu URL-encode nilai `conversationId` jika digabungkan secara programatik dengan parameter lain.
+
+## Ringkasan alur
+
+1. Ambil daftar conversation lewat `GET /conversation` (filter `channelTypes=linkchat` bila perlu).
+2. Simpan `_id` conversation sebagai `conversationId`.
+3. Susun URL LinkChat dengan `?conversationId={CONVERSATION_ID}`.
+4. Bagikan URL tersebut ke customer — session chat akan tetap sama walau dibuka dari browser atau device berbeda.
+
+## Troubleshooting
+
+- Jika terbuka sebagai session baru, pastikan nama parameter tepat `conversationId` (case-sensitive) dan nilainya sama persis dengan `_id` dari API.
+- Jika conversation tidak ditemukan, ambil ulang daftar conversation dan pastikan ID belum terhapus dan API key punya akses ke channel tersebut.
+- Jika customer mem-forward URL tanpa query string, session baru akan terbentuk. Pastikan link yang dibagikan selalu menyertakan `?conversationId=`.
+- Jika URL digabung dengan parameter lain, gunakan `&conversationId=` (bukan `?` dua kali).

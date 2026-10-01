@@ -12,6 +12,7 @@
     "penggunaan-webhook",
     "mengambil-data-pipelead",
     "integrasi-pipelead-produksi",
-    "mengambil-percakapan-dan-pesan"
+    "mengambil-percakapan-dan-pesan",
+    "linkchat-dengan-conversation-id"
   ]
 }
