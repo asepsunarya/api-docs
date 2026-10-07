@@ -90,9 +90,84 @@ Parameter yang sering dipakai:
 - `toDate`: tanggal akhir filter conversation.
 - `channelIds`: filter berdasarkan ID channel.
 - `channelTypes`: filter tipe channel seperti `whatsapp-official`, `whatsapp-unofficial`, `instagram`, `messenger`, `telegram`, `webchat`, atau `linkchat`.
+- `agentIds`: filter berdasarkan ID user agent yang sedang memegang conversation (lihat cara mendapatkan list agents di bawah).
 - `labelIds`: filter berdasarkan label.
 - `status`: filter status seperti `unread`, `unanswered`, `completed`, `uncompleted`, atau `unassigned`.
 - `search`: pencarian berdasarkan nama atau informasi conversation.
+
+### 1a. Filter percakapan berdasarkan agent
+
+Untuk mengambil conversation yang dipegang agent tertentu, tambahkan query `agentIds`. Bisa satu ID, comma-separated, atau parameter berulang:
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/conversation?page=1&limit=10&fromDate=2026-06-01T00:00:00.000Z&toDate=2026-06-25T23:59:59.000Z&agentIds=65b37833afe781e84afa001a" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/conversation?page=1&limit=10&fromDate=2026-06-01T00:00:00.000Z&toDate=2026-06-25T23:59:59.000Z&agentIds=65b37833afe781e84afa001a,65b37833afe781e84afa001b" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Catatan: `agentIds` memfilter field `agentBy._id` pada conversation, yaitu ID **user** agent yang sedang assign — bukan `_id` dokumen agent. Ambil nilainya dari `user._id` pada response `GET /agent` (langkah 1b). Untuk conversation yang dipegang Chatbot AI, gunakan ID khusus `63be75218c254266b94613dd`.
+
+### 1b. Mendapatkan list agents
+
+Referensi API: [GET /agent](/docs/openapi/agent-controller/AgentController_getAgent)
+
+Endpoint list agents **sudah tersedia** di Partner API, jadi tidak perlu endpoint baru. Gunakan endpoint ini untuk mendapatkan daftar agent beserta `user._id` yang dipakai sebagai `agentIds`.
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/agent?page=1&limit=10" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
+
+Contoh response ringkas:
+
+```json
+{
+  "docs": [
+    {
+      "_id": "65b37833afe781e84afa002a",
+      "role": "agent",
+      "user": {
+        "_id": "65b37833afe781e84afa001a",
+        "name": "Budi",
+        "email": "budi@example.com"
+      }
+    }
+  ],
+  "totalDocs": 1,
+  "limit": 10,
+  "totalPages": 1,
+  "page": 1,
+  "hasNextPage": false
+}
+```
+
+Parameter yang bisa dipakai:
+
+- `page`: nomor halaman.
+- `limit`: jumlah data per halaman.
+- `search`: pencarian berdasarkan nama, email, atau role agent.
+- `role`: filter role, misalnya `agent`.
+
+Simpan nilai `user._id` dari agent yang diinginkan:
+
+```txt
+AGENT_ID=65b37833afe781e84afa001a
+```
+
+Lalu pakai sebagai filter di langkah 1a:
+
+```bash
+curl -X GET "https://api.socialchat.id/partner/conversation?page=1&limit=10&fromDate=2026-06-01T00:00:00.000Z&toDate=2026-06-25T23:59:59.000Z&agentIds=65b37833afe781e84afa001a" \
+  -H "Authorization: Bearer ***" \
+  -H "Content-Type: application/json"
+```
 
 ## 2. Ambil detail satu percakapan
 
@@ -289,6 +364,8 @@ curl -X GET "https://api.socialchat.id/partner/conversation/stage?page=1&limit=1
 
 - Jika conversation kosong, cek `fromDate` dan `toDate` karena filter tanggal wajib digunakan.
 - Jika pesan kosong, pastikan `id` pada endpoint message adalah `_id` conversation.
+- Jika filter `agentIds` tidak menghasilkan data, pastikan nilainya adalah `user._id` dari response `GET /agent`, bukan `_id` dokumen agent.
+- Jika ingin mengambil conversation yang belum di-assign ke agent mana pun, gunakan `status=unassigned` sebagai pengganti `agentIds`.
 - Jika halaman berikutnya tidak muncul, cek nilai `hasNextPage` dan `nextToken`.
 - Jika pencarian pesan tidak menemukan data, coba gunakan kata kunci lebih pendek atau hilangkan `conversationId`.
 - Jangan menaruh API key di frontend publik. Lakukan request dari backend/server partner.
